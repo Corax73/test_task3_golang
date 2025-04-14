@@ -3,6 +3,7 @@ package models
 import (
 	"checklist/customDb"
 	"checklist/customLog"
+	"checklist/customStructs"
 	"checklist/utils"
 	"slices"
 	"strings"
@@ -128,8 +129,8 @@ func (model *Model) GetList(params map[string]string) []map[string]interface{} {
 	return resp
 }
 
-func (model *Model) GetOneById(id int) map[string]interface{} {
-	resp := map[string]interface{}{"success": false, "error": "not found"}
+func (model *Model) GetOneById(id int) customStructs.Response {
+	var resp customStructs.Response
 	if id > 0 {
 		db := customDb.GetConnect()
 		defer customDb.CloseConnect(db)
@@ -143,7 +144,8 @@ func (model *Model) GetOneById(id int) map[string]interface{} {
 			customLog.Logging(err)
 		} else {
 			if data := utils.SqlToMap(rows); len(data) > 0 {
-				resp = data[0]
+				resp.Success = true
+				resp.Message = data[0]
 			}
 		}
 	}
