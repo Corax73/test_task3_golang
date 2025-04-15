@@ -5,10 +5,10 @@ import (
 	"checklist/customStructs"
 	"checklist/models"
 	"checklist/utils"
+	"checklist/validations"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -18,9 +18,6 @@ import (
 type Router struct {
 	*mux.Router
 }
-
-// @var response stub for answers on routes.
-var response map[string]interface{}
 
 func (router *Router) Init() *Router {
 	r := mux.NewRouter()
@@ -98,58 +95,36 @@ func (router *Router) consoleOutput(r *http.Request) {
 	fmt.Println(strings.Join([]string{time.Now().Format(time.RFC3339), r.Method, r.RequestURI, r.UserAgent()}, " "))
 }
 
-// createUser by post parameters creates an entity, you, if the model implements the interface,
-// then a request is made to enrich the entity data.
+// createUser by post parameters creates an entity
 func (router *Router) createUser(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.Response
 	params := router.initProcess(w, r, true)
 	response.Message = make(map[string]interface{}, len(params))
-	invalidData := "Invalid data"
-	if login, ok := params["login"]; ok && login != "" {
-		if email, ok := params["email"]; ok && email != "" {
-			emailStr := fmt.Sprintf("%s", email)
-			if utils.IsEmail(emailStr) {
-				userModel := (*&models.User{}).Init()
-				if password, ok := params["password"]; ok && password != "" {
-					passwordStr := fmt.Sprintf("%s", password)
-					if userModel.IsPasswordValid(passwordStr) {
-						role_id := "1" // @todo default role
-						if roleId, ok := params["role_id"]; ok && roleId != "" {
-							roleModel := (*&models.Role{}).Init()
-							roleIdInt := int(int64(roleId.(float64)))
-							role := roleModel.GetOneById(roleIdInt)
-							if role.Success {
-								role_id = strconv.Itoa(roleIdInt)
-							}
-						}
-						result := userModel.Create(map[string]string{
-							"id":         "",
-							"login":      fmt.Sprintf("%s", login),
-							"role_id":    role_id,
-							"email":      emailStr,
-							"password":   passwordStr,
-							"created_at": "",
-						})
-						if id, ok := result["id"]; !ok {
-							response.Message["error"] = "Error.Try again"
-						} else {
-							response.Success = true
-							response.Message["id"] = id
-						}
-					} else {
-						response.Message["password"] = invalidData
-					}
-				} else {
-					response.Message["password"] = invalidData
-				}
+	validatedData := validations.UserCreateRequestValidating(params)
+	if validatedData.Success {
+		passHash, err := utils.HashPassword(validatedData.Data.Password)
+		if err == nil {
+			userModel := (*&models.User{}).Init()
+			result := userModel.Create(map[string]string{
+				"id":         "",
+				"login":      validatedData.Data.Login,
+				"role_id":    validatedData.Data.RoleId,
+				"email":      validatedData.Data.Email,
+				"password":   passHash,
+				"created_at": "",
+			})
+			if id, ok := result["id"]; !ok {
+				response.Message["error"] = "Error.Try again"
 			} else {
-				response.Message["email"] = invalidData
+				response.Success = true
+				response.Message["id"] = id
 			}
 		} else {
-			response.Message["email"] = invalidData
+			customLog.Logging(err)
+			response.Message["password"] = "Please try again, if the error persists, contact the administrator"
 		}
 	} else {
-		response.Message["login"] = invalidData
+		response.Message = validatedData.ToMap()
 	}
 
 	json.NewEncoder(w).Encode(response)

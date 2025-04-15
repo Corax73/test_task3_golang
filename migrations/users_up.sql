@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS "users" (
     "id" serial PRIMARY KEY,
     "role_id" int NOT NULL,
-    "login" varchar NOT NULL DEFAULT '',
-    "email" varchar NOT NULL DEFAULT '',
+    "login" varchar NOT NULL DEFAULT '' UNIQUE,
+    "email" varchar NOT NULL DEFAULT '' UNIQUE,
     "password" varchar NOT NULL DEFAULT '',
     "created_at" date NOT NULL DEFAULT 'now()',
     FOREIGN KEY ("role_id") REFERENCES "roles" ("id")

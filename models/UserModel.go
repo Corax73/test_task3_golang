@@ -16,7 +16,7 @@ func (user *User) Init() *User {
 	return &User{&model}
 }
 
-func (user *User) IsPasswordValid(password string) bool {
+func IsPasswordValid(password string) bool {
 	lowerCond := regexp.MustCompile(`[a-z]`)
 	upperCond := regexp.MustCompile(`[A-Z]`)
 	digitCond := regexp.MustCompile(`[0-9]`)
