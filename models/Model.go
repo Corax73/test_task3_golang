@@ -10,9 +10,9 @@ import (
 )
 
 type Model struct {
-	table        string
-	Fields       map[string]string
-	FieldsStruct any
+	table         string
+	Fields        map[string]string
+	GuardedFields []string
 }
 
 func (model *Model) Table() string {
@@ -75,46 +75,62 @@ func (model *Model) Save() map[string]string {
 	return response
 }
 
-func (model *Model) GetList(params map[string]string) []map[string]interface{} {
-	var resp []map[string]interface{}
+func (model *Model) GetList(params map[string]string) []map[string]any {
+	var resp []map[string]any
 	db := customDb.GetConnect()
 	defer customDb.CloseConnect(db)
+	modelFields := utils.GetMapKeys(model.Fields)
+	selectedStr := ""
+	for _, val := range modelFields {
+		if !slices.Contains(model.GuardedFields, val) {
+			selectedStr = utils.ConcatSlice([]string{
+				selectedStr,
+				val,
+				", ",
+			})
+		}
+	}
+	selectedStr = strings.Trim(selectedStr, ", ")
 	queryStr := utils.ConcatSlice([]string{
-		"SELECT * FROM ",
+		"SELECT ",
+		selectedStr,
+		" FROM ",
 		model.Table(),
 	})
-	if filterBy, ok := params["filterBy"]; ok && filterBy != "" {
-		queryStr = utils.ConcatSlice([]string{
-			queryStr,
-			" WHERE ",
-			params["filterBy"],
-			" = '",
-			params["filterVal"],
-			"'",
-		})
-	}
-	if order, ok := params["order"]; ok && order != "" {
-		queryStr = utils.ConcatSlice([]string{
-			queryStr,
-			" ORDER BY ",
-			params["orderBy"],
-			" ",
-			params["order"],
-		})
-	}
-	if limit, ok := params["limit"]; ok && limit != "" {
-		queryStr = utils.ConcatSlice([]string{
-			queryStr,
-			" LIMIT ",
-			params["limit"],
-		})
-	}
-	if offset, ok := params["offset"]; ok && offset != "" {
-		queryStr = utils.ConcatSlice([]string{
-			queryStr,
-			" OFFSET ",
-			params["offset"],
-		})
+	if len(params) > 0 {
+		if filterBy, ok := params["filterBy"]; ok && filterBy != "" {
+			queryStr = utils.ConcatSlice([]string{
+				queryStr,
+				" WHERE ",
+				params["filterBy"],
+				" = '",
+				params["filterVal"],
+				"'",
+			})
+		}
+		if order, ok := params["order"]; ok && order != "" {
+			queryStr = utils.ConcatSlice([]string{
+				queryStr,
+				" ORDER BY ",
+				params["orderBy"],
+				" ",
+				params["order"],
+			})
+		}
+		if limit, ok := params["limit"]; ok && limit != "" {
+			queryStr = utils.ConcatSlice([]string{
+				queryStr,
+				" LIMIT ",
+				params["limit"],
+			})
+		}
+		if offset, ok := params["offset"]; ok && offset != "" {
+			queryStr = utils.ConcatSlice([]string{
+				queryStr,
+				" OFFSET ",
+				params["offset"],
+			})
+		}
 	}
 	queryStr = utils.ConcatSlice([]string{
 		queryStr,
@@ -129,8 +145,8 @@ func (model *Model) GetList(params map[string]string) []map[string]interface{} {
 	return resp
 }
 
-func (model *Model) GetOneById(id int) customStructs.Response {
-	var resp customStructs.Response
+func (model *Model) GetOneById(id int) customStructs.SimpleResponse {
+	var resp customStructs.SimpleResponse
 	if id > 0 {
 		db := customDb.GetConnect()
 		defer customDb.CloseConnect(db)

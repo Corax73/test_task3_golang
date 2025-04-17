@@ -7,15 +7,15 @@ import (
 	"strconv"
 )
 
-type UserValidatedFields struct {
+type UserCreateValidatedFields struct {
 	Login, Email, Password, RoleId string
 }
-type UserValidatedData struct {
+type UserCreateValidatedData struct {
 	Success bool
-	Data    UserValidatedFields
+	Data    UserCreateValidatedFields
 }
 
-func (userValidatedData *UserValidatedData) ToMap() map[string]any {
+func (userValidatedData *UserCreateValidatedData) ToMap() map[string]any {
 	resp := make(map[string]any, 4)
 	resp["login"] = userValidatedData.Data.Login
 	resp["email"] = userValidatedData.Data.Email
@@ -24,8 +24,8 @@ func (userValidatedData *UserValidatedData) ToMap() map[string]any {
 	return resp
 }
 
-func UserCreateRequestValidating(requestData map[string]any) UserValidatedData {
-	var response UserValidatedData
+func UserCreateRequestValidating(requestData map[string]any) UserCreateValidatedData {
+	var response UserCreateValidatedData
 	invalidData := "Invalid data"
 	if login, ok := requestData["login"]; ok && login != "" {
 		response.Success = true

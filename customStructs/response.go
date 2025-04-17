@@ -1,6 +1,11 @@
 package customStructs
 
-type Response struct {
+type SimpleResponse struct {
 	Success bool
-	Message map[string]interface{}
+	Message map[string]any
+}
+
+type ListResponse struct {
+	Success bool
+	Message []map[string]any
 }

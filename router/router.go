@@ -22,12 +22,13 @@ type Router struct {
 func (router *Router) Init() *Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/users/", router.createUser).Methods("POST")
+	r.HandleFunc("/users/", router.getUsers).Methods("GET")
 	return &Router{r}
 }
 
 // initProcess returns a map of request parameters, causes console output on request.
-func (router *Router) initProcess(w http.ResponseWriter, r *http.Request, getPost bool) map[string]interface{} {
-	var resp map[string]interface{}
+func (router *Router) initProcess(w http.ResponseWriter, r *http.Request, getPost bool) map[string]any {
+	resp := make(map[string]any)
 	var vars map[string]string
 	w.Header().Set("Content-Type", "application/json")
 	if router.checkEnv() {
@@ -97,9 +98,9 @@ func (router *Router) consoleOutput(r *http.Request) {
 
 // createUser by post parameters creates an entity
 func (router *Router) createUser(w http.ResponseWriter, r *http.Request) {
-	var response customStructs.Response
+	var response customStructs.SimpleResponse
 	params := router.initProcess(w, r, true)
-	response.Message = make(map[string]interface{}, len(params))
+	response.Message = make(map[string]any, len(params))
 	validatedData := validations.UserCreateRequestValidating(params)
 	if validatedData.Success {
 		passHash, err := utils.HashPassword(validatedData.Data.Password)
@@ -127,5 +128,22 @@ func (router *Router) createUser(w http.ResponseWriter, r *http.Request) {
 		response.Message = validatedData.ToMap()
 	}
 
+	json.NewEncoder(w).Encode(response)
+}
+
+// getUsers returns a list of entities, can use limit and offset parameters.
+func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
+	var response customStructs.ListResponse
+	params := router.initProcess(w, r, false)
+	validatedData := validations.UserListRequestValidating(params)
+	userModel := (*&models.User{}).Init()
+	if validatedData.Success {
+		response.Message = userModel.GetList(validatedData.ToMap())
+	} else {
+		response.Message = userModel.GetList(make(map[string]string, 1))
+	}
+	if len(response.Message) > 1 {
+		response.Success = true
+	}
 	json.NewEncoder(w).Encode(response)
 }

@@ -98,14 +98,14 @@ func GetIndexByStrValue(data []string, value string) int {
 }
 
 // SqlToMap the values ​​of the passed response structure are returned by the database as a map.
-func SqlToMap(rows *sql.Rows) []map[string]interface{} {
-	resp := make([]map[string]interface{}, 0)
+func SqlToMap(rows *sql.Rows) []map[string]any {
+	resp := make([]map[string]any, 0)
 	columns, err := rows.Columns()
 	if err != nil {
 		customLog.Logging(err)
 	} else {
-		scanArgs := make([]interface{}, len(columns))
-		values := make([]interface{}, len(columns))
+		scanArgs := make([]any, len(columns))
+		values := make([]any, len(columns))
 		for i := range values {
 			scanArgs[i] = &values[i]
 		}
@@ -114,7 +114,7 @@ func SqlToMap(rows *sql.Rows) []map[string]interface{} {
 			if err != nil {
 				customLog.Logging(err)
 			}
-			record := make(map[string]interface{})
+			record := make(map[string]any)
 			for i, col := range values {
 				if col != nil {
 					switch col.(type) {

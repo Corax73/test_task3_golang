@@ -13,6 +13,7 @@ func (user *User) Init() *User {
 	model := Model{}
 	model.SetTable("users")
 	model.Fields = map[string]string{"id": "", "role_id": "", "login": "", "email": "", "password": "", "created_at": ""}
+	model.GuardedFields = []string{"password"}
 	return &User{&model}
 }
 
