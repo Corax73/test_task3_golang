@@ -4,28 +4,27 @@ import (
 	"fmt"
 )
 
-type UserListValidatedFields struct {
+type EntityListValidatedFields struct {
 	FilterBy, FilterVal, OrderBy, Order, Limit, Offset string
 }
-type UserListValidatedData struct {
+type EntityListValidatedData struct {
 	Success bool
-	Data    UserListValidatedFields
+	Data    EntityListValidatedFields
 }
 
-func (userValidatedData *UserListValidatedData) ToMap() map[string]string {
+func (entityValidatedData *EntityListValidatedData) ToMap() map[string]string {
 	resp := make(map[string]string, 6)
-	resp["filterBy"] = userValidatedData.Data.FilterBy
-	resp["filterVal"] = userValidatedData.Data.FilterVal
-	resp["orderBy"] = userValidatedData.Data.OrderBy
-	resp["order"] = userValidatedData.Data.Order
-	resp["limit"] = userValidatedData.Data.Limit
-	resp["offset"] = userValidatedData.Data.Offset
+	resp["filterBy"] = entityValidatedData.Data.FilterBy
+	resp["filterVal"] = entityValidatedData.Data.FilterVal
+	resp["orderBy"] = entityValidatedData.Data.OrderBy
+	resp["order"] = entityValidatedData.Data.Order
+	resp["limit"] = entityValidatedData.Data.Limit
+	resp["offset"] = entityValidatedData.Data.Offset
 	return resp
 }
 
-func UserListRequestValidating(requestData map[string]any) UserListValidatedData {
-	var response UserListValidatedData
-	fmt.Println(requestData)
+func EntityListRequestValidating(requestData map[string]any) EntityListValidatedData {
+	var response EntityListValidatedData
 	if filterBy, ok := requestData["filterBy"]; ok && filterBy != "" {
 		response.Data.FilterBy = fmt.Sprintf("%s", filterBy)
 		if filterVal, ok := requestData["filterVal"]; ok && filterVal != "" {

@@ -23,6 +23,9 @@ func (router *Router) Init() *Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/users/", router.createUser).Methods("POST")
 	r.HandleFunc("/users/", router.getUsers).Methods("GET")
+
+	r.HandleFunc("/roles/", router.createRole).Methods("POST")
+	r.HandleFunc("/roles/", router.getRoles).Methods("GET")
 	return &Router{r}
 }
 
@@ -135,12 +138,54 @@ func (router *Router) createUser(w http.ResponseWriter, r *http.Request) {
 func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.ListResponse
 	params := router.initProcess(w, r, false)
-	validatedData := validations.UserListRequestValidating(params)
+	validatedData := validations.EntityListRequestValidating(params)
 	userModel := (*&models.User{}).Init()
 	if validatedData.Success {
 		response.Message = userModel.GetList(validatedData.ToMap())
 	} else {
 		response.Message = userModel.GetList(make(map[string]string, 1))
+	}
+	if len(response.Message) > 1 {
+		response.Success = true
+	}
+	json.NewEncoder(w).Encode(response)
+}
+
+// createRole by post parameters creates an entity
+func (router *Router) createRole(w http.ResponseWriter, r *http.Request) {
+	var response customStructs.SimpleResponse
+	params := router.initProcess(w, r, true)
+	response.Message = make(map[string]any, len(params))
+	validatedData := validations.RoleCreateRequestValidating(params)
+	if validatedData.Success {
+		roleModel := (*&models.Role{}).Init()
+		result := roleModel.Create(map[string]string{
+			"id":    "",
+			"title": validatedData.Data.Title,
+		})
+		if id, ok := result["id"]; !ok {
+			response.Message["error"] = "Error.Try again"
+		} else {
+			response.Success = true
+			response.Message["id"] = id
+		}
+	} else {
+		response.Message = validatedData.ToMap()
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
+// getRoles returns a list of entities, can use limit and offset parameters.
+func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
+	var response customStructs.ListResponse
+	params := router.initProcess(w, r, false)
+	validatedData := validations.EntityListRequestValidating(params)
+	roleModel := (*&models.Role{}).Init()
+	if validatedData.Success {
+		response.Message = roleModel.GetList(validatedData.ToMap())
+	} else {
+		response.Message = roleModel.GetList(make(map[string]string, 1))
 	}
 	if len(response.Message) > 1 {
 		response.Success = true
