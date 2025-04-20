@@ -26,6 +26,9 @@ func (router *Router) Init() *Router {
 
 	r.HandleFunc("/roles/", router.createRole).Methods("POST")
 	r.HandleFunc("/roles/", router.getRoles).Methods("GET")
+
+	r.HandleFunc("/checklists/", router.createChecklist).Methods("POST")
+	r.HandleFunc("/checklists/", router.getChecklists).Methods("GET")
 	return &Router{r}
 }
 
@@ -160,8 +163,9 @@ func (router *Router) createRole(w http.ResponseWriter, r *http.Request) {
 	if validatedData.Success {
 		roleModel := (*&models.Role{}).Init()
 		result := roleModel.Create(map[string]string{
-			"id":    "",
-			"title": validatedData.Data.Title,
+			"id":         "",
+			"title":      validatedData.Data.Title,
+			"created_at": "",
 		})
 		if id, ok := result["id"]; !ok {
 			response.Message["error"] = "Error.Try again"
@@ -178,6 +182,50 @@ func (router *Router) createRole(w http.ResponseWriter, r *http.Request) {
 
 // getRoles returns a list of entities, can use limit and offset parameters.
 func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
+	var response customStructs.ListResponse
+	params := router.initProcess(w, r, false)
+	validatedData := validations.EntityListRequestValidating(params)
+	roleModel := (*&models.Role{}).Init()
+	if validatedData.Success {
+		response.Message = roleModel.GetList(validatedData.ToMap())
+	} else {
+		response.Message = roleModel.GetList(make(map[string]string, 1))
+	}
+	if len(response.Message) > 1 {
+		response.Success = true
+	}
+	json.NewEncoder(w).Encode(response)
+}
+
+// createChecklist by post parameters creates an entity
+func (router *Router) createChecklist(w http.ResponseWriter, r *http.Request) {
+	var response customStructs.SimpleResponse
+	params := router.initProcess(w, r, true)
+	response.Message = make(map[string]any, len(params))
+	validatedData := validations.ChecklistCreateRequestValidating(params)
+	if validatedData.Success {
+		checklistModel := (*&models.Checklist{}).Init()
+		result := checklistModel.Create(map[string]string{
+			"id":         "",
+			"user_id":    validatedData.Data.UserId,
+			"title":      validatedData.Data.Title,
+			"created_at": "",
+		})
+		if id, ok := result["id"]; !ok {
+			response.Message["error"] = "Error.Try again"
+		} else {
+			response.Success = true
+			response.Message["id"] = id
+		}
+	} else {
+		response.Message = validatedData.ToMap()
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
+// getChecklists returns a list of entities, can use limit and offset parameters.
+func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.ListResponse
 	params := router.initProcess(w, r, false)
 	validatedData := validations.EntityListRequestValidating(params)
