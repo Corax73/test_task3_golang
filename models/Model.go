@@ -167,3 +167,32 @@ func (model *Model) GetOneById(id int) customStructs.SimpleResponse {
 	}
 	return resp
 }
+
+func (model *Model) GetOneByField(field, value string) customStructs.SimpleResponse {
+	var resp customStructs.SimpleResponse
+	if field != "" && value != "" {
+		fieldNames := utils.GetMapKeys(model.Fields)
+		if slices.Contains(fieldNames, field) {
+			db := customDb.GetConnect()
+			defer customDb.CloseConnect(db)
+
+			queryStr := utils.ConcatSlice([]string{
+				"SELECT * FROM ",
+				model.Table(),
+				" WHERE ",
+				field,
+				" = $1;",
+			})
+			rows, err := db.Query(queryStr, value)
+			if err != nil {
+				customLog.Logging(err)
+			} else {
+				if data := utils.SqlToMap(rows); len(data) > 0 {
+					resp.Success = true
+					resp.Message = data[0]
+				}
+			}
+		}
+	}
+	return resp
+}

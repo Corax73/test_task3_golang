@@ -3,6 +3,7 @@ package router
 import (
 	"checklist/customLog"
 	"checklist/customStructs"
+	"checklist/middleware"
 	"checklist/models"
 	"checklist/utils"
 	"checklist/validations"
@@ -139,19 +140,25 @@ func (router *Router) createUser(w http.ResponseWriter, r *http.Request) {
 
 // getUsers returns a list of entities, can use limit and offset parameters.
 func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
-	var response customStructs.ListResponse
-	params := router.initProcess(w, r, false)
-	validatedData := validations.EntityListRequestValidating(params)
-	userModel := (*&models.User{}).Init()
-	if validatedData.Success {
-		response.Message = userModel.GetList(validatedData.ToMap())
+	login, passHash, ok := r.BasicAuth()
+	if ok && middleware.BasicCheck(login, passHash) {
+		var response customStructs.ListResponse
+		params := router.initProcess(w, r, false)
+		validatedData := validations.EntityListRequestValidating(params)
+		userModel := (*&models.User{}).Init()
+		if validatedData.Success {
+			response.Message = userModel.GetList(validatedData.ToMap())
+		} else {
+			response.Message = userModel.GetList(make(map[string]string, 1))
+		}
+		if len(response.Message) > 1 {
+			response.Success = true
+		}
+		json.NewEncoder(w).Encode(response)
 	} else {
-		response.Message = userModel.GetList(make(map[string]string, 1))
+		w.Header().Set("WWW-Authenticate", `Basic realm="api"`)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 	}
-	if len(response.Message) > 1 {
-		response.Success = true
-	}
-	json.NewEncoder(w).Encode(response)
 }
 
 // createRole by post parameters creates an entity
