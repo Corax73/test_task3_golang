@@ -1,6 +1,7 @@
 package validations
 
 import (
+	"checklist/customStructs"
 	"fmt"
 )
 
@@ -23,28 +24,28 @@ func (entityValidatedData *EntityListValidatedData) ToMap() map[string]string {
 	return resp
 }
 
-func EntityListRequestValidating(requestData map[string]any) EntityListValidatedData {
+func EntityListRequestValidating(request customStructs.Request) EntityListValidatedData {
 	var response EntityListValidatedData
-	if filterBy, ok := requestData["filterBy"]; ok && filterBy != "" {
+	if filterBy, ok := request.Params["filterBy"]; ok && filterBy != "" {
 		response.Data.FilterBy = fmt.Sprintf("%s", filterBy)
-		if filterVal, ok := requestData["filterVal"]; ok && filterVal != "" {
+		if filterVal, ok := request.Params["filterVal"]; ok && filterVal != "" {
 			response.Success = true
 			response.Data.FilterVal = fmt.Sprintf("%s", filterVal)
 		}
 	}
-	if orderBy, ok := requestData["orderBy"]; ok && orderBy != "" {
+	if orderBy, ok := request.Params["orderBy"]; ok && orderBy != "" {
 		response.Success = true
 		response.Data.OrderBy = fmt.Sprintf("%s", orderBy)
-		if order, ok := requestData["order"]; ok && order != "" {
+		if order, ok := request.Params["order"]; ok && order != "" {
 			response.Success = true
 			response.Data.Order = fmt.Sprintf("%s", order)
 		}
 	}
-	if limit, ok := requestData["limit"]; ok && limit != "" {
+	if limit, ok := request.Params["limit"]; ok && limit != "" {
 		response.Success = true
 		response.Data.Limit = fmt.Sprintf("%s", limit)
 	}
-	if offset, ok := requestData["offset"]; ok && offset != "" {
+	if offset, ok := request.Params["offset"]; ok && offset != "" {
 		response.Success = true
 		response.Data.Offset = fmt.Sprintf("%s", offset)
 	}

@@ -1,6 +1,7 @@
 package validations
 
 import (
+	"checklist/customStructs"
 	"checklist/models"
 	"fmt"
 	"strconv"
@@ -21,16 +22,16 @@ func (checklistValidatedData *ChecklistCreateValidatedData) ToMap() map[string]a
 	return resp
 }
 
-func ChecklistCreateRequestValidating(requestData map[string]any) ChecklistCreateValidatedData {
+func ChecklistCreateRequestValidating(request customStructs.Request) ChecklistCreateValidatedData {
 	var response ChecklistCreateValidatedData
 	invalidData := "Invalid data"
-	if title, ok := requestData["title"]; ok && title != "" {
+	if title, ok := request.Params["title"]; ok && title != "" {
 		response.Success = true
 		response.Data.Title = fmt.Sprintf("%s", title)
 	} else {
 		response.Data.Title = invalidData
 	}
-	if userId, ok := requestData["user_id"]; ok && userId != "" {
+	if userId, ok := request.Params["user_id"]; ok && userId != "" {
 		userModel := (*&models.User{}).Init()
 		userIdInt := int(int64(userId.(float64)))
 		role := userModel.GetOneById(userIdInt)

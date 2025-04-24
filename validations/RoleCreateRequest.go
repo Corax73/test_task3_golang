@@ -1,6 +1,7 @@
 package validations
 
 import (
+	"checklist/customStructs"
 	"fmt"
 )
 
@@ -18,10 +19,10 @@ func (roleCreateValidatedData *RoleCreateValidatedData) ToMap() map[string]any {
 	return resp
 }
 
-func RoleCreateRequestValidating(requestData map[string]any) RoleCreateValidatedData {
+func RoleCreateRequestValidating(request customStructs.Request) RoleCreateValidatedData {
 	var response RoleCreateValidatedData
 	invalidData := "Invalid data"
-	if title, ok := requestData["title"]; ok && title != "" {
+	if title, ok := request.Params["title"]; ok && title != "" {
 		response.Success = true
 		response.Data.Title = fmt.Sprintf("%s", title)
 	} else {

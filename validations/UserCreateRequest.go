@@ -1,6 +1,7 @@
 package validations
 
 import (
+	"checklist/customStructs"
 	"checklist/models"
 	"checklist/utils"
 	"fmt"
@@ -24,16 +25,16 @@ func (userValidatedData *UserCreateValidatedData) ToMap() map[string]any {
 	return resp
 }
 
-func UserCreateRequestValidating(requestData map[string]any) UserCreateValidatedData {
+func UserCreateRequestValidating(request customStructs.Request) UserCreateValidatedData {
 	var response UserCreateValidatedData
 	invalidData := "Invalid data"
-	if login, ok := requestData["login"]; ok && login != "" {
+	if login, ok := request.Params["login"]; ok && login != "" {
 		response.Success = true
 		response.Data.Login = fmt.Sprintf("%s", login)
 	} else {
 		response.Data.Login = invalidData
 	}
-	if email, ok := requestData["email"]; ok && email != "" {
+	if email, ok := request.Params["email"]; ok && email != "" {
 		emailStr := fmt.Sprintf("%s", email)
 		if utils.IsEmail(emailStr) {
 			response.Data.Email = emailStr
@@ -45,7 +46,7 @@ func UserCreateRequestValidating(requestData map[string]any) UserCreateValidated
 		response.Success = false
 		response.Data.Email = invalidData
 	}
-	if password, ok := requestData["password"]; ok && password != "" {
+	if password, ok := request.Params["password"]; ok && password != "" {
 		passwordStr := fmt.Sprintf("%s", password)
 		if models.IsPasswordValid(passwordStr) {
 			response.Data.Password = passwordStr
@@ -57,7 +58,7 @@ func UserCreateRequestValidating(requestData map[string]any) UserCreateValidated
 		response.Success = false
 		response.Data.Password = invalidData
 	}
-	if roleId, ok := requestData["role_id"]; ok && roleId != "" {
+	if roleId, ok := request.Params["role_id"]; ok && roleId != "" {
 		roleModel := (*&models.Role{}).Init()
 		roleIdInt := int(int64(roleId.(float64)))
 		role := roleModel.GetOneById(roleIdInt)
