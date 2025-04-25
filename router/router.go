@@ -185,6 +185,7 @@ func (router *Router) createRole(w http.ResponseWriter, r *http.Request) {
 			result := roleModel.Create(map[string]string{
 				"id":         "",
 				"title":      validatedData.Data.Title,
+				"abilities":  validatedData.Data.Abilities,
 				"created_at": "",
 			})
 			if id, ok := result["id"]; !ok {

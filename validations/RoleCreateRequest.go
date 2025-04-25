@@ -1,12 +1,14 @@
 package validations
 
 import (
+	"checklist/customLog"
 	"checklist/customStructs"
+	"encoding/json"
 	"fmt"
 )
 
 type RoleCreateValidatedFields struct {
-	Title string
+	Title, Abilities string
 }
 type RoleCreateValidatedData struct {
 	Success bool
@@ -14,8 +16,9 @@ type RoleCreateValidatedData struct {
 }
 
 func (roleCreateValidatedData *RoleCreateValidatedData) ToMap() map[string]any {
-	resp := make(map[string]any, 1)
+	resp := make(map[string]any, 2)
 	resp["title"] = roleCreateValidatedData.Data.Title
+	resp["abilities"] = roleCreateValidatedData.Data.Abilities
 	return resp
 }
 
@@ -27,6 +30,14 @@ func RoleCreateRequestValidating(request customStructs.Request) RoleCreateValida
 		response.Data.Title = fmt.Sprintf("%s", title)
 	} else {
 		response.Data.Title = invalidData
+	}
+	if abilities, ok := request.Params["abilities"]; ok {
+		bs, err := json.Marshal(abilities)
+		if err != nil {
+			customLog.Logging(err)
+		} else {
+			response.Data.Abilities = string(bs)
+		}
 	}
 	return response
 }
