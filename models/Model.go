@@ -168,7 +168,7 @@ func (model *Model) GetOneById(id int) customStructs.SimpleResponse {
 	return resp
 }
 
-func (model *Model) GetOneByField(field, value string) customStructs.SimpleResponse {
+func (model *Model) GetOneByField(field, value, withRelation string) customStructs.SimpleResponse {
 	var resp customStructs.SimpleResponse
 	if field != "" && value != "" {
 		fieldNames := utils.GetMapKeys(model.Fields)
@@ -179,6 +179,17 @@ func (model *Model) GetOneByField(field, value string) customStructs.SimpleRespo
 			queryStr := utils.ConcatSlice([]string{
 				"SELECT * FROM ",
 				model.Table(),
+			})
+			if withRelation == "roles" {
+				queryStr = utils.ConcatSlice([]string{
+					queryStr,
+					" JOIN roles",
+					" ON roles.id = users.role_id",
+				})
+
+			}
+			queryStr = utils.ConcatSlice([]string{
+				queryStr,
 				" WHERE ",
 				field,
 				" = $1;",

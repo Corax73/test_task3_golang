@@ -34,60 +34,78 @@ func (router *Router) Init() *Router {
 }
 
 // initProcess returns a map of request parameters, causes console output on request.
-func (router *Router) initProcess(w http.ResponseWriter, r *http.Request, getPost bool) customStructs.Request {
+func (router *Router) initProcess(w http.ResponseWriter, r *http.Request, getPost bool, entityName, action string) customStructs.Request {
 	login, passHash, ok := r.BasicAuth()
 	var resp customStructs.Request
 	resp.Params = make(map[string]any)
-	if ok && middleware.BasicCheck(login, passHash) {
-		resp.Auth = true
-		var vars map[string]string
-		w.Header().Set("Content-Type", "application/json")
-		if router.checkEnv() {
-			router.consoleOutput(r)
-		}
-		vars = mux.Vars(r)
-		sort := r.URL.Query().Get("sort")
-		if sort != "" {
-			var order string
-			splits := strings.Split(sort, "--")
-			if len(splits) > 1 {
-				requestField, requestOrder := splits[0], splits[1]
-				if requestOrder != "desc" && requestOrder != "asc" {
-					order = "desc"
-				} else {
-					order = requestOrder
-				}
-				vars["order"] = order
-				vars["orderBy"] = requestField
-			}
-		}
-		filter := r.URL.Query().Get("filter")
-		if filter != "" {
-			splits := strings.Split(filter, "--")
-			if len(splits) > 1 {
-				requestField, requestValue := splits[0], splits[1]
-				if requestValue != "" {
-					vars["filterBy"] = requestField
-					vars["filterVal"] = requestValue
+	if ok {
+		passwordCheck, userData := middleware.BasicCheck(login, passHash)
+		if passwordCheck && len(userData) > 0 && entityName != "" && action != "" {
+			abilities := make(map[string]map[string]int, 4)
+			json.Unmarshal([]byte(userData["abilities"].(string)), &abilities)
+			fmt.Println(abilities)
+			if accessData, ok := abilities[entityName]; ok {
+				if actionAccess, ok := accessData[action]; ok {
+					if actionAccess == 1 {
+						resp.Auth = true
+					}
 				}
 			}
-		}
-		limit := r.URL.Query().Get("limit")
-		if limit != "" {
-			vars["limit"] = limit
-		}
-		offset := r.URL.Query().Get("offset")
-		if offset != "" {
-			vars["offset"] = offset
-		}
-		if getPost {
-			err := json.NewDecoder(r.Body).Decode(&resp.Params)
-			if err != nil {
-				customLog.Logging(err)
+		} else {
+			if passwordCheck {
+				resp.Auth = true
 			}
 		}
-		for k, v := range vars {
-			resp.Params[k] = v
+		if resp.Auth {
+			var vars map[string]string
+			w.Header().Set("Content-Type", "application/json")
+			if router.checkEnv() {
+				router.consoleOutput(r)
+			}
+			vars = mux.Vars(r)
+			sort := r.URL.Query().Get("sort")
+			if sort != "" {
+				var order string
+				splits := strings.Split(sort, "--")
+				if len(splits) > 1 {
+					requestField, requestOrder := splits[0], splits[1]
+					if requestOrder != "desc" && requestOrder != "asc" {
+						order = "desc"
+					} else {
+						order = requestOrder
+					}
+					vars["order"] = order
+					vars["orderBy"] = requestField
+				}
+			}
+			filter := r.URL.Query().Get("filter")
+			if filter != "" {
+				splits := strings.Split(filter, "--")
+				if len(splits) > 1 {
+					requestField, requestValue := splits[0], splits[1]
+					if requestValue != "" {
+						vars["filterBy"] = requestField
+						vars["filterVal"] = requestValue
+					}
+				}
+			}
+			limit := r.URL.Query().Get("limit")
+			if limit != "" {
+				vars["limit"] = limit
+			}
+			offset := r.URL.Query().Get("offset")
+			if offset != "" {
+				vars["offset"] = offset
+			}
+			if getPost {
+				err := json.NewDecoder(r.Body).Decode(&resp.Params)
+				if err != nil {
+					customLog.Logging(err)
+				}
+			}
+			for k, v := range vars {
+				resp.Params[k] = v
+			}
 		}
 	}
 	return resp
@@ -117,7 +135,7 @@ func (router *Router) setUnauthorized(w http.ResponseWriter) {
 // createUser by post parameters creates an entity
 func (router *Router) createUser(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.SimpleResponse
-	request := router.initProcess(w, r, true)
+	request := router.initProcess(w, r, true, "users", "create")
 	if request.Auth {
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.UserCreateRequestValidating(request)
@@ -155,7 +173,7 @@ func (router *Router) createUser(w http.ResponseWriter, r *http.Request) {
 // getUsers returns a list of entities, can use limit and offset parameters.
 func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.ListResponse
-	request := router.initProcess(w, r, false)
+	request := router.initProcess(w, r, false, "users", "read")
 	if request.Auth {
 		validatedData := validations.EntityListRequestValidating(request)
 		userModel := (*&models.User{}).Init()
@@ -176,7 +194,7 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 // createRole by post parameters creates an entity
 func (router *Router) createRole(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.SimpleResponse
-	request := router.initProcess(w, r, true)
+	request := router.initProcess(w, r, true, "roles", "create")
 	if request.Auth {
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.RoleCreateRequestValidating(request)
@@ -206,7 +224,7 @@ func (router *Router) createRole(w http.ResponseWriter, r *http.Request) {
 // getRoles returns a list of entities, can use limit and offset parameters.
 func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.ListResponse
-	request := router.initProcess(w, r, false)
+	request := router.initProcess(w, r, false, "roles", "read")
 	if request.Auth {
 		validatedData := validations.EntityListRequestValidating(request)
 		roleModel := (*&models.Role{}).Init()
@@ -227,7 +245,7 @@ func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
 // createChecklist by post parameters creates an entity
 func (router *Router) createChecklist(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.SimpleResponse
-	request := router.initProcess(w, r, true)
+	request := router.initProcess(w, r, true, "checklists", "create")
 	if request.Auth {
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.ChecklistCreateRequestValidating(request)
@@ -257,14 +275,14 @@ func (router *Router) createChecklist(w http.ResponseWriter, r *http.Request) {
 // getChecklists returns a list of entities, can use limit and offset parameters.
 func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.ListResponse
-	request := router.initProcess(w, r, false)
+	request := router.initProcess(w, r, false, "checklists", "read")
 	if request.Auth {
 		validatedData := validations.EntityListRequestValidating(request)
-		roleModel := (*&models.Role{}).Init()
+		checklistModel := (*&models.Checklist{}).Init()
 		if validatedData.Success {
-			response.Message = roleModel.GetList(validatedData.ToMap())
+			response.Message = checklistModel.GetList(validatedData.ToMap())
 		} else {
-			response.Message = roleModel.GetList(make(map[string]string, 1))
+			response.Message = checklistModel.GetList(make(map[string]string, 1))
 		}
 		if len(response.Message) > 1 {
 			response.Success = true
