@@ -30,6 +30,8 @@ func (router *Router) Init() *Router {
 
 	r.HandleFunc("/checklists/", router.createChecklist).Methods("POST")
 	r.HandleFunc("/checklists/", router.getChecklists).Methods("GET")
+
+	r.HandleFunc("/checklists/items/", router.createChecklistItems).Methods("POST")
 	return &Router{r}
 }
 
@@ -41,16 +43,7 @@ func (router *Router) initProcess(w http.ResponseWriter, r *http.Request, getPos
 	if ok {
 		passwordCheck, userData := middleware.BasicCheck(login, passHash)
 		if passwordCheck && len(userData) > 0 && entityName != "" && action != "" {
-			abilities := make(map[string]map[string]int, 4)
-			json.Unmarshal([]byte(userData["abilities"].(string)), &abilities)
-			fmt.Println(abilities)
-			if accessData, ok := abilities[entityName]; ok {
-				if actionAccess, ok := accessData[action]; ok {
-					if actionAccess == 1 {
-						resp.Auth = true
-					}
-				}
-			}
+			resp.Auth = middleware.UserCan(userData, entityName, action)
 		} else {
 			if passwordCheck {
 				resp.Auth = true
@@ -286,6 +279,36 @@ func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 		}
 		if len(response.Message) > 1 {
 			response.Success = true
+		}
+		json.NewEncoder(w).Encode(response)
+	} else {
+		router.setUnauthorized(w)
+	}
+}
+
+// createChecklistItems by post parameters creates an entity
+func (router *Router) createChecklistItems(w http.ResponseWriter, r *http.Request) {
+	var response customStructs.SimpleResponse
+	request := router.initProcess(w, r, true, "checklists_items", "create")
+	if request.Auth {
+		response.Message = make(map[string]any, len(request.Params))
+		validatedData := validations.ChecklistItemCreateRequestValidating(request)
+		if validatedData.Success {
+			checklistModel := (*&models.ChecklistItem{}).Init()
+			result := checklistModel.Create(map[string]string{
+				"id":           "",
+				"checklist_id": validatedData.Data.ChecklistId,
+				"description":  validatedData.Data.Description,
+				"created_at":   "",
+			})
+			if id, ok := result["id"]; !ok {
+				response.Message["error"] = "Error.Try again"
+			} else {
+				response.Success = true
+				response.Message["id"] = id
+			}
+		} else {
+			response.Message = validatedData.ToMap()
 		}
 		json.NewEncoder(w).Encode(response)
 	} else {
