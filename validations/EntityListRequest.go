@@ -6,7 +6,7 @@ import (
 )
 
 type EntityListValidatedFields struct {
-	FilterBy, FilterVal, OrderBy, Order, Limit, Offset string
+	Id, FilterBy, FilterVal, OrderBy, Order, Limit, Offset string
 }
 type EntityListValidatedData struct {
 	Success bool
@@ -14,7 +14,8 @@ type EntityListValidatedData struct {
 }
 
 func (entityValidatedData *EntityListValidatedData) ToMap() map[string]string {
-	resp := make(map[string]string, 6)
+	resp := make(map[string]string, 7)
+	resp["id"] = entityValidatedData.Data.Id
 	resp["filterBy"] = entityValidatedData.Data.FilterBy
 	resp["filterVal"] = entityValidatedData.Data.FilterVal
 	resp["orderBy"] = entityValidatedData.Data.OrderBy
@@ -26,6 +27,10 @@ func (entityValidatedData *EntityListValidatedData) ToMap() map[string]string {
 
 func EntityListRequestValidating(request customStructs.Request) EntityListValidatedData {
 	var response EntityListValidatedData
+	if id, ok := request.Params["id"]; ok && id != "" {
+		response.Data.Id = fmt.Sprintf("%s", id)
+		response.Success = true
+	}
 	if filterBy, ok := request.Params["filterBy"]; ok && filterBy != "" {
 		response.Data.FilterBy = fmt.Sprintf("%s", filterBy)
 		if filterVal, ok := request.Params["filterVal"]; ok && filterVal != "" {

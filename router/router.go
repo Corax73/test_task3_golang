@@ -32,6 +32,7 @@ func (router *Router) Init() *Router {
 	r.HandleFunc("/checklists/", router.getChecklists).Methods("GET")
 
 	r.HandleFunc("/checklists/items/", router.createChecklistItems).Methods("POST")
+	r.HandleFunc("/checklists/{id:[0-9]+}/items/", router.getChecklistsItems).Methods("GET")
 	return &Router{r}
 }
 
@@ -175,7 +176,7 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 		} else {
 			response.Message = userModel.GetList(make(map[string]string, 1))
 		}
-		if len(response.Message) > 1 {
+		if len(response.Message) > 0 {
 			response.Success = true
 		}
 		json.NewEncoder(w).Encode(response)
@@ -226,7 +227,7 @@ func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
 		} else {
 			response.Message = roleModel.GetList(make(map[string]string, 1))
 		}
-		if len(response.Message) > 1 {
+		if len(response.Message) > 0 {
 			response.Success = true
 		}
 		json.NewEncoder(w).Encode(response)
@@ -277,7 +278,7 @@ func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 		} else {
 			response.Message = checklistModel.GetList(make(map[string]string, 1))
 		}
-		if len(response.Message) > 1 {
+		if len(response.Message) > 0 {
 			response.Success = true
 		}
 		json.NewEncoder(w).Encode(response)
@@ -309,6 +310,31 @@ func (router *Router) createChecklistItems(w http.ResponseWriter, r *http.Reques
 			}
 		} else {
 			response.Message = validatedData.ToMap()
+		}
+		json.NewEncoder(w).Encode(response)
+	} else {
+		router.setUnauthorized(w)
+	}
+}
+
+// getChecklistsItems returns a list of entities, can use limit and offset parameters.
+func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request) {
+	var response customStructs.ListResponse
+	request := router.initProcess(w, r, false, "checklists_items", "read")
+	if request.Auth {
+		validatedData := validations.EntityListRequestValidating(request)
+		checklistModel := (*&models.ChecklistItem{}).Init()
+		if validatedData.Success {
+			if validatedData.Data.Id != "" {
+				validatedData.Data.FilterBy = "checklist_id"
+				validatedData.Data.FilterVal = validatedData.Data.Id
+			}
+			response.Message = checklistModel.GetList(validatedData.ToMap())
+		} else {
+			response.Message = checklistModel.GetList(make(map[string]string, 1))
+		}
+		if len(response.Message) > 0 {
+			response.Success = true
 		}
 		json.NewEncoder(w).Encode(response)
 	} else {
