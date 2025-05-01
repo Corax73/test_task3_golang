@@ -24,6 +24,7 @@ func (router *Router) Init() *Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/users/", router.createUser).Methods("POST")
 	r.HandleFunc("/users/", router.getUsers).Methods("GET")
+	r.HandleFunc("/users/{id:[0-9]+}", router.updateUser).Methods("PUT")
 
 	r.HandleFunc("/roles/", router.createRole).Methods("POST")
 	r.HandleFunc("/roles/", router.getRoles).Methods("GET")
@@ -162,6 +163,27 @@ func (router *Router) createUser(w http.ResponseWriter, r *http.Request) {
 	} else {
 		router.setUnauthorized(w)
 	}
+}
+
+// updateUser updates entity.
+func (router *Router) updateUser(w http.ResponseWriter, r *http.Request) {
+	var response customStructs.SimpleResponse
+	request := router.initProcess(w, r, true, "users", "update")
+	if request.Auth {
+		response.Message = make(map[string]any, len(request.Params))
+		validatedData := validations.UserUpdateRequestValidating(request)
+		if validatedData.Success {
+			userModel := (*&models.User{}).Init()
+			result := userModel.Update(validatedData.ToMap(), validatedData.Data.Id)
+			if id, ok := result["id"]; !ok {
+				response.Message["error"] = "Error.Try again"
+			} else {
+				response.Success = true
+				response.Message["id"] = id
+			}
+		}
+	}
+	json.NewEncoder(w).Encode(response)
 }
 
 // getUsers returns a list of entities, can use limit and offset parameters.
