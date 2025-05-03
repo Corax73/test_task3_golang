@@ -321,6 +321,7 @@ func (router *Router) createChecklistItems(w http.ResponseWriter, r *http.Reques
 			result := checklistModel.Create(map[string]string{
 				"id":           "",
 				"checklist_id": validatedData.Data.ChecklistId,
+				"is_completed": validatedData.Data.IsCompleted,
 				"description":  validatedData.Data.Description,
 				"created_at":   "",
 			})
