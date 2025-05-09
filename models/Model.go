@@ -266,3 +266,25 @@ func (model *Model) Update(fields map[string]string, id string) map[string]strin
 	}
 	return response
 }
+
+func (model *Model) Delete(id int) map[string]any {
+	resp := map[string]any{"success": false, "error": "not found"}
+	if id > 0 {
+		db := customDb.GetConnect()
+		defer customDb.CloseConnect(db)
+		queryStr := utils.ConcatSlice([]string{
+			"DELETE FROM ",
+			model.Table(),
+			" WHERE id=$1 RETURNING id;",
+		})
+		rows, err := db.Query(queryStr, id)
+		if err != nil {
+			customLog.Logging(err)
+		} else {
+			if data := utils.SqlToMap(rows); len(data) > 0 {
+				resp = data[0]
+			}
+		}
+	}
+	return resp
+}

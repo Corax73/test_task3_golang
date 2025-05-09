@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -25,6 +26,7 @@ func (router *Router) Init() *Router {
 	r.HandleFunc("/users/", router.createUser).Methods("POST")
 	r.HandleFunc("/users/", router.getUsers).Methods("GET")
 	r.HandleFunc("/users/{id:[0-9]+}", router.updateUser).Methods("PUT")
+	r.HandleFunc("/users/{id:[0-9]+}", router.deleteUser).Methods("DELETE")
 
 	r.HandleFunc("/roles/", router.createRole).Methods("POST")
 	r.HandleFunc("/roles/", router.getRoles).Methods("GET")
@@ -197,6 +199,31 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 			response.Message = userModel.GetList(validatedData.ToMap())
 		} else {
 			response.Message = userModel.GetList(make(map[string]string, 1))
+		}
+		if len(response.Message) > 0 {
+			response.Success = true
+		}
+		json.NewEncoder(w).Encode(response)
+	} else {
+		router.setUnauthorized(w)
+	}
+}
+
+// deleteUser deletes an entity using the parameter `id`.
+func (router *Router) deleteUser(w http.ResponseWriter, r *http.Request) {
+	var response customStructs.SimpleResponse
+	request := router.initProcess(w, r, true, "users", "delete")
+	if request.Auth {
+		response.Message = make(map[string]any, len(request.Params))
+		validatedData := validations.UserDeleteRequestValidating(request)
+		fmt.Println(validatedData)
+		if validatedData.Success {
+			userModel := (*&models.User{}).Init()
+			userIdInt, _ := strconv.Atoi(validatedData.Data.Id)
+			fmt.Println(userIdInt)
+			response.Message = userModel.Delete(userIdInt)
+		} else {
+			response.Message["error"] = "Error.Try again"
 		}
 		if len(response.Message) > 0 {
 			response.Success = true
