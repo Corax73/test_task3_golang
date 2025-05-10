@@ -97,10 +97,23 @@ func (model *Model) GetList(params map[string]string) []map[string]any {
 		" FROM ",
 		model.Table(),
 	})
+	queryStrToTotal := utils.ConcatSlice([]string{
+		"SELECT COUNT(id)",
+		" FROM ",
+		model.Table(),
+	})
 	if len(params) > 0 {
 		if filterBy, ok := params["filterBy"]; ok && filterBy != "" {
 			queryStr = utils.ConcatSlice([]string{
 				queryStr,
+				" WHERE ",
+				params["filterBy"],
+				" = '",
+				params["filterVal"],
+				"'",
+			})
+			queryStrToTotal = utils.ConcatSlice([]string{
+				queryStrToTotal,
 				" WHERE ",
 				params["filterBy"],
 				" = '",
@@ -132,6 +145,15 @@ func (model *Model) GetList(params map[string]string) []map[string]any {
 			})
 		}
 	}
+	queryStrToTotal = utils.ConcatSlice([]string{
+		queryStrToTotal,
+		" ;",
+	})
+	var total string
+	err := db.QueryRow(queryStrToTotal).Scan(&total)
+	if err != nil {
+		customLog.Logging(err)
+	}
 	queryStr = utils.ConcatSlice([]string{
 		queryStr,
 		" ;",
@@ -142,6 +164,9 @@ func (model *Model) GetList(params map[string]string) []map[string]any {
 	} else {
 		resp = utils.SqlToMap(rows)
 	}
+	totalResp := make(map[string]any, 1)
+	totalResp["total"] = total
+	resp = append(resp, totalResp)
 	return resp
 }
 

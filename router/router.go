@@ -30,12 +30,15 @@ func (router *Router) Init() *Router {
 
 	r.HandleFunc("/roles/", router.createRole).Methods("POST")
 	r.HandleFunc("/roles/", router.getRoles).Methods("GET")
+	r.HandleFunc("/roles/{id:[0-9]+}", router.deleteRole).Methods("DELETE")
 
 	r.HandleFunc("/checklists/", router.createChecklist).Methods("POST")
 	r.HandleFunc("/checklists/", router.getChecklists).Methods("GET")
+	r.HandleFunc("/checklists/{id:[0-9]+}", router.deleteChecklist).Methods("DELETE")
 
 	r.HandleFunc("/checklists/items/", router.createChecklistItems).Methods("POST")
 	r.HandleFunc("/checklists/{id:[0-9]+}/items/", router.getChecklistsItems).Methods("GET")
+	r.HandleFunc("/checklists/items/{id:[0-9]+}", router.deleteChecklistItem).Methods("DELETE")
 	return &Router{r}
 }
 
@@ -215,12 +218,10 @@ func (router *Router) deleteUser(w http.ResponseWriter, r *http.Request) {
 	request := router.initProcess(w, r, true, "users", "delete")
 	if request.Auth {
 		response.Message = make(map[string]any, len(request.Params))
-		validatedData := validations.UserDeleteRequestValidating(request)
-		fmt.Println(validatedData)
+		validatedData := validations.EntityDeleteRequestValidating(request, "users")
 		if validatedData.Success {
 			userModel := (*&models.User{}).Init()
 			userIdInt, _ := strconv.Atoi(validatedData.Data.Id)
-			fmt.Println(userIdInt)
 			response.Message = userModel.Delete(userIdInt)
 		} else {
 			response.Message["error"] = "Error.Try again"
@@ -285,6 +286,29 @@ func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// deleteRole deletes an entity using the parameter `id`.
+func (router *Router) deleteRole(w http.ResponseWriter, r *http.Request) {
+	var response customStructs.SimpleResponse
+	request := router.initProcess(w, r, true, "roles", "delete")
+	if request.Auth {
+		response.Message = make(map[string]any, len(request.Params))
+		validatedData := validations.EntityDeleteRequestValidating(request, "roles")
+		if validatedData.Success {
+			roleModel := (*&models.Role{}).Init()
+			roleIdInt, _ := strconv.Atoi(validatedData.Data.Id)
+			response.Message = roleModel.Delete(roleIdInt)
+		} else {
+			response.Message["error"] = "Error.Try again"
+		}
+		if len(response.Message) > 0 {
+			response.Success = true
+		}
+		json.NewEncoder(w).Encode(response)
+	} else {
+		router.setUnauthorized(w)
+	}
+}
+
 // createChecklist by post parameters creates an entity
 func (router *Router) createChecklist(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.SimpleResponse
@@ -336,10 +360,33 @@ func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// deleteChecklist deletes an entity using the parameter `id`.
+func (router *Router) deleteChecklist(w http.ResponseWriter, r *http.Request) {
+	var response customStructs.SimpleResponse
+	request := router.initProcess(w, r, true, "checklists", "delete")
+	if request.Auth {
+		response.Message = make(map[string]any, len(request.Params))
+		validatedData := validations.EntityDeleteRequestValidating(request, "checklists")
+		if validatedData.Success {
+			checklistModel := (*&models.Checklist{}).Init()
+			checklistIdInt, _ := strconv.Atoi(validatedData.Data.Id)
+			response.Message = checklistModel.Delete(checklistIdInt)
+		} else {
+			response.Message["error"] = "Error.Try again"
+		}
+		if len(response.Message) > 0 {
+			response.Success = true
+		}
+		json.NewEncoder(w).Encode(response)
+	} else {
+		router.setUnauthorized(w)
+	}
+}
+
 // createChecklistItems by post parameters creates an entity
 func (router *Router) createChecklistItems(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.SimpleResponse
-	request := router.initProcess(w, r, true, "checklists_items", "create")
+	request := router.initProcess(w, r, true, "checklist_items", "create")
 	if request.Auth {
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.ChecklistItemCreateRequestValidating(request)
@@ -370,7 +417,7 @@ func (router *Router) createChecklistItems(w http.ResponseWriter, r *http.Reques
 // getChecklistsItems returns a list of entities, can use limit and offset parameters.
 func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.ListResponse
-	request := router.initProcess(w, r, false, "checklists_items", "read")
+	request := router.initProcess(w, r, false, "checklist_items", "read")
 	if request.Auth {
 		validatedData := validations.EntityListRequestValidating(request)
 		checklistModel := (*&models.ChecklistItem{}).Init()
@@ -382,6 +429,29 @@ func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request)
 			response.Message = checklistModel.GetList(validatedData.ToMap())
 		} else {
 			response.Message = checklistModel.GetList(make(map[string]string, 1))
+		}
+		if len(response.Message) > 0 {
+			response.Success = true
+		}
+		json.NewEncoder(w).Encode(response)
+	} else {
+		router.setUnauthorized(w)
+	}
+}
+
+// deleteChecklistItem deletes an entity using the parameter `id`.
+func (router *Router) deleteChecklistItem(w http.ResponseWriter, r *http.Request) {
+	var response customStructs.SimpleResponse
+	request := router.initProcess(w, r, true, "checklist_items", "delete")
+	if request.Auth {
+		response.Message = make(map[string]any, len(request.Params))
+		validatedData := validations.EntityDeleteRequestValidating(request, "checklist_items")
+		if validatedData.Success {
+			checklistItemModel := (*&models.ChecklistItem{}).Init()
+			checklistItemIdInt, _ := strconv.Atoi(validatedData.Data.Id)
+			response.Message = checklistItemModel.Delete(checklistItemIdInt)
+		} else {
+			response.Message["error"] = "Error.Try again"
 		}
 		if len(response.Message) > 0 {
 			response.Success = true
