@@ -149,6 +149,7 @@ func (router *Router) createUser(w http.ResponseWriter, r *http.Request) {
 					"role_id":    validatedData.Data.RoleId,
 					"email":      validatedData.Data.Email,
 					"password":   passHash,
+					"checklists_quantity": validatedData.Data.ChecklistsQuantity,
 					"created_at": "",
 				})
 				if id, ok := result["id"]; !ok {

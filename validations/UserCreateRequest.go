@@ -9,7 +9,7 @@ import (
 )
 
 type UserCreateValidatedFields struct {
-	Login, Email, Password, RoleId string
+	Login, Email, Password, RoleId, ChecklistsQuantity string
 }
 type UserCreateValidatedData struct {
 	Success bool
@@ -22,6 +22,7 @@ func (userValidatedData *UserCreateValidatedData) ToMap() map[string]any {
 	resp["email"] = userValidatedData.Data.Email
 	resp["password"] = userValidatedData.Data.Password
 	resp["role_id"] = userValidatedData.Data.RoleId
+	resp["checklists_quantity"] = userValidatedData.Data.ChecklistsQuantity
 	return resp
 }
 
@@ -72,5 +73,10 @@ func UserCreateRequestValidating(request customStructs.Request) UserCreateValida
 		response.Success = false
 		response.Data.RoleId = invalidData
 	}
+	var checklistsQuantityInt int
+	if checklistsQuantity, ok := request.Params["checklists_quantity"]; ok && checklistsQuantity != "" {
+		checklistsQuantityInt = max(int(int64(checklistsQuantity.(float64))), 0)
+	}
+	response.Data.ChecklistsQuantity = strconv.Itoa(checklistsQuantityInt)
 	return response
 }
