@@ -31,7 +31,6 @@ func UserUpdateRequestValidating(request customStructs.Request) UserUpdateValida
 	var response UserUpdateValidatedData
 	invalidData := "Invalid data"
 	if login, ok := request.Params["login"]; ok && login != "" {
-		response.Success = true
 		response.Data.Login = fmt.Sprintf("%s", login)
 	}
 	if email, ok := request.Params["email"]; ok && email != "" {
@@ -74,6 +73,18 @@ func UserUpdateRequestValidating(request customStructs.Request) UserUpdateValida
 			user := userModel.GetOneById(userIdInt)
 			if user.Success {
 				response.Data.Id = strconv.Itoa(userIdInt)
+				if response.Data.Login != invalidData ||
+					response.Data.Email != invalidData ||
+					response.Data.Password != invalidData ||
+					response.Data.RoleId != invalidData {
+					response.Success = true
+				}
+				if response.Data.Login == invalidData ||
+					response.Data.Email == invalidData ||
+					response.Data.Password == invalidData ||
+					response.Data.RoleId == invalidData {
+					response.Success = false
+				}
 			} else {
 				response.Success = false
 				response.Data.Id = invalidData

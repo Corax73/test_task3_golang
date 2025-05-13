@@ -237,19 +237,19 @@ func (model *Model) Update(fields map[string]string, id string) map[string]strin
 	response := map[string]string{}
 	fields = utils.GetMapWithoutKeys(fields, []string{"id"})
 	if utils.PresenceMapKeysInOtherMap(fields, model.Fields) {
-		strSlice := make([]string, 7+((len(fields)-1)*2))
+		strSlice := make([]string, 9+((len(fields)-1)*2))
 		strSlice = append(strSlice, "UPDATE ")
 		strSlice = append(strSlice, model.Table())
 		strSlice = append(strSlice, " SET ")
-		if len(fields) > 1 {
+		columns := utils.GetMapKeysWithValue(fields)
+		if len(columns) > 1 {
 			strSlice = append(strSlice, "(")
 		}
-		columns := utils.GetMapKeysWithValue(fields)
 		index := utils.GetIndexByStrValue(columns, "id")
 		if index != -1 {
 			columns = slices.Delete(columns, index, index+1)
 		}
-		if len(fields) > 1 {
+		if len(columns) > 1 {
 			strSlice = append(strSlice, strings.Trim(strings.Join(columns, ","), ","))
 			strSlice = append(strSlice, ") = (")
 		} else {
@@ -268,7 +268,7 @@ func (model *Model) Update(fields map[string]string, id string) map[string]strin
 			}
 			i++
 		}
-		if len(fields) > 1 {
+		if len(columns) > 1 {
 			strSlice = append(strSlice, strings.Trim(strings.Join(valuesToDb, ","), ","))
 			strSlice = append(strSlice, ") ")
 		} else {
@@ -281,7 +281,6 @@ func (model *Model) Update(fields map[string]string, id string) map[string]strin
 		queryStr := utils.ConcatSlice(strSlice)
 		db := customDb.GetConnect()
 		defer customDb.CloseConnect(db)
-		var id string
 		err := db.QueryRow(queryStr).Scan(&id)
 		if err != nil {
 			customLog.Logging(err)

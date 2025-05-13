@@ -34,6 +34,7 @@ func (router *Router) Init() *Router {
 
 	r.HandleFunc("/checklists/", router.createChecklist).Methods("POST")
 	r.HandleFunc("/checklists/", router.getChecklists).Methods("GET")
+	r.HandleFunc("/checklists/{id:[0-9]+}", router.updateChecklist).Methods("PUT")
 	r.HandleFunc("/checklists/{id:[0-9]+}", router.deleteChecklist).Methods("DELETE")
 
 	r.HandleFunc("/checklists/items/", router.createChecklistItems).Methods("POST")
@@ -144,13 +145,13 @@ func (router *Router) createUser(w http.ResponseWriter, r *http.Request) {
 			if err == nil {
 				userModel := (*&models.User{}).Init()
 				result := userModel.Create(map[string]string{
-					"id":         "",
-					"login":      validatedData.Data.Login,
-					"role_id":    validatedData.Data.RoleId,
-					"email":      validatedData.Data.Email,
-					"password":   passHash,
+					"id":                  "",
+					"login":               validatedData.Data.Login,
+					"role_id":             validatedData.Data.RoleId,
+					"email":               validatedData.Data.Email,
+					"password":            passHash,
 					"checklists_quantity": validatedData.Data.ChecklistsQuantity,
-					"created_at": "",
+					"created_at":          "",
 				})
 				if id, ok := result["id"]; !ok {
 					response.Message["error"] = "Error.Try again"
@@ -359,6 +360,27 @@ func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 	} else {
 		router.setUnauthorized(w)
 	}
+}
+
+// updateChecklist updates entity.
+func (router *Router) updateChecklist(w http.ResponseWriter, r *http.Request) {
+	var response customStructs.SimpleResponse
+	request := router.initProcess(w, r, true, "checklists", "update")
+	if request.Auth {
+		response.Message = make(map[string]any, len(request.Params))
+		validatedData := validations.ChecklistUpdateRequestValidating(request)
+		if validatedData.Success {
+			checklistModel := (*&models.Checklist{}).Init()
+			result := checklistModel.Update(validatedData.ToMap(), validatedData.Data.Id)
+			if id, ok := result["id"]; !ok {
+				response.Message["error"] = "Error.Try again"
+			} else {
+				response.Success = true
+				response.Message["id"] = id
+			}
+		}
+	}
+	json.NewEncoder(w).Encode(response)
 }
 
 // deleteChecklist deletes an entity using the parameter `id`.
