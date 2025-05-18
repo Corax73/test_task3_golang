@@ -39,6 +39,7 @@ func (router *Router) Init() *Router {
 
 	r.HandleFunc("/checklists/items/", router.createChecklistItems).Methods("POST")
 	r.HandleFunc("/checklists/{id:[0-9]+}/items/", router.getChecklistsItems).Methods("GET")
+	r.HandleFunc("/checklists/items/{id:[0-9]+}", router.updateChecklistItem).Methods("PUT")
 	r.HandleFunc("/checklists/items/{id:[0-9]+}", router.deleteChecklistItem).Methods("DELETE")
 	return &Router{r}
 }
@@ -483,4 +484,25 @@ func (router *Router) deleteChecklistItem(w http.ResponseWriter, r *http.Request
 	} else {
 		router.setUnauthorized(w)
 	}
+}
+
+// updateChecklistItem updates entity.
+func (router *Router) updateChecklistItem(w http.ResponseWriter, r *http.Request) {
+	var response customStructs.SimpleResponse
+	request := router.initProcess(w, r, true, "checklist_items", "update")
+	if request.Auth {
+		response.Message = make(map[string]any, len(request.Params))
+		validatedData := validations.ChecklistItemUpdateRequestValidating(request)
+		if validatedData.Success {
+			checklistItemModel := (*&models.ChecklistItem{}).Init()
+			result := checklistItemModel.Update(validatedData.ToMap(), validatedData.Data.Id)
+			if id, ok := result["id"]; !ok {
+				response.Message["error"] = "Error.Try again"
+			} else {
+				response.Success = true
+				response.Message["id"] = id
+			}
+		}
+	}
+	json.NewEncoder(w).Encode(response)
 }

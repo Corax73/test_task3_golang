@@ -6,13 +6,14 @@ import (
 	"checklist/customStructs"
 	"checklist/utils"
 	"slices"
+	"strconv"
 	"strings"
 )
 
 type Model struct {
-	table         string
-	Fields        map[string]string
-	GuardedFields []string
+	table              string
+	Fields, FieldTypes map[string]string
+	GuardedFields      []string
 }
 
 func (model *Model) Table() string {
@@ -49,27 +50,62 @@ func (model *Model) Save() map[string]string {
 		strSlice = append(strSlice, strings.Trim(strings.Join(fields, ","), ","))
 		strSlice = append(strSlice, ") VALUES (")
 		values := utils.GetMapValues(model.Fields)
-		valuesToDb := make([]string, len(values))
+		valuesToDb := make([]any, len(values))
+		valPlaceholdersSlice := make([]string, len(fields))
+		var i int
 		for _, val := range fields {
-			if _, ok := model.Fields[val]; ok {
-				value := model.Fields[val]
-				if strings.Contains(value, "'") {
-					value = strings.Replace(value, "'", "''", -1)
+			if value, ok := model.Fields[val]; ok {
+				if fieldType, ok := model.FieldTypes[val]; ok {
+					switch fieldType {
+					case "bool":
+						boolValue, err := strconv.ParseBool(value)
+						if err != nil {
+							customLog.Logging(err)
+						} else {
+							valuesToDb[i] = boolValue
+						}
+					case "int":
+						intValue, err := strconv.Atoi(value)
+						if err != nil {
+							customLog.Logging(err)
+						} else {
+							valuesToDb[i] = intValue
+						}
+					default:
+						valuesToDb[i] = value
+					}
+					valPlaceholdersSlice = append(valPlaceholdersSlice, utils.ConcatSlice([]string{"$", strconv.Itoa(i + 1), ", "}))
 				}
-				valuesToDb = append(valuesToDb, utils.ConcatSlice([]string{"'", value, "'"}))
 			}
+			i++
 		}
-		strSlice = append(strSlice, strings.Trim(strings.Join(valuesToDb, ","), ","))
+		strSlice = append(strSlice, strings.Trim(utils.ConcatSlice(valPlaceholdersSlice), ", "))
 		strSlice = append(strSlice, ") RETURNING id;")
 		queryStr := utils.ConcatSlice(strSlice)
 		db := customDb.GetConnect()
+		tx, err := db.Begin()
 		defer customDb.CloseConnect(db)
-		var id string
-		err := db.QueryRow(queryStr).Scan(&id)
 		if err != nil {
 			customLog.Logging(err)
 		} else {
-			response = map[string]string{"id": id}
+			defer tx.Rollback()
+			stmt, err := tx.Prepare(queryStr)
+			if err != nil {
+				customLog.Logging(err)
+			}
+			defer stmt.Close()
+			var id int
+			err = stmt.QueryRow(valuesToDb...).Scan(&id)
+			if err != nil {
+				customLog.Logging(err)
+			} else {
+				err = tx.Commit()
+				if err != nil {
+					customLog.Logging(err)
+				} else {
+					response = map[string]string{"id": strconv.Itoa(id)}
+				}
+			}
 		}
 	}
 	return response
@@ -256,36 +292,77 @@ func (model *Model) Update(fields map[string]string, id string) map[string]strin
 			strSlice = append(strSlice, columns[0])
 			strSlice = append(strSlice, " = ")
 		}
-		valuesToDb := make([]string, len(columns))
+		valuesToDb := make([]any, len(columns))
 		var i int
+		valPlaceholdersSlice := make([]string, len(columns))
 		for _, val := range columns {
-			if _, ok := fields[val]; ok {
-				value := fields[val]
-				if strings.Contains(value, "'") {
-					value = strings.Replace(value, "'", "''", -1)
+			if value, ok := fields[val]; ok {
+				if fieldType, ok := model.FieldTypes[val]; ok {
+					switch fieldType {
+					case "bool":
+						boolValue, err := strconv.ParseBool(value)
+						if err != nil {
+							customLog.Logging(err)
+						} else {
+							valuesToDb[i] = boolValue
+						}
+					case "int":
+						intValue, err := strconv.Atoi(value)
+						if err != nil {
+							customLog.Logging(err)
+						} else {
+							valuesToDb[i] = intValue
+						}
+					default:
+						if strings.Contains(value, "'") {
+							value = strings.Replace(value, "'", "''", -1)
+						}
+						valuesToDb[i] = value
+					}
+					valPlaceholdersSlice = append(valPlaceholdersSlice, utils.ConcatSlice([]string{"$", strconv.Itoa(i + 1), ", "}))
+					i++
 				}
-				valuesToDb[i] = utils.ConcatSlice([]string{"'", value, "'"})
 			}
-			i++
 		}
+		strSlice = append(strSlice, strings.Trim(utils.ConcatSlice(valPlaceholdersSlice), ", "))
 		if len(columns) > 1 {
-			strSlice = append(strSlice, strings.Trim(strings.Join(valuesToDb, ","), ","))
 			strSlice = append(strSlice, ") ")
 		} else {
-			strSlice = append(strSlice, valuesToDb[0])
 			strSlice = append(strSlice, " ")
 		}
-		strSlice = append(strSlice, "WHERE id = ")
-		strSlice = append(strSlice, id)
+
+		strSlice = append(strSlice, utils.ConcatSlice([]string{"WHERE id = ", "$", strconv.Itoa(i + 1)}))
 		strSlice = append(strSlice, " RETURNING id;")
 		queryStr := utils.ConcatSlice(strSlice)
 		db := customDb.GetConnect()
+		tx, err := db.Begin()
 		defer customDb.CloseConnect(db)
-		err := db.QueryRow(queryStr).Scan(&id)
 		if err != nil {
 			customLog.Logging(err)
 		} else {
-			response = map[string]string{"id": id}
+			defer tx.Rollback()
+			stmt, err := tx.Prepare(queryStr)
+			if err != nil {
+				customLog.Logging(err)
+			}
+			defer stmt.Close()
+			valuesToDb = append(valuesToDb, id)
+			row, err := stmt.Exec(valuesToDb...)
+			if err != nil {
+				customLog.Logging(err)
+			} else {
+				err = tx.Commit()
+				if err != nil {
+					customLog.Logging(err)
+				} else {
+					_, err := row.RowsAffected()
+					if err != nil {
+						customLog.Logging(err)
+					} else {
+						response = map[string]string{"id": id}
+					}
+				}
+			}
 		}
 	}
 	return response

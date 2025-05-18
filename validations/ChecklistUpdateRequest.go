@@ -44,17 +44,16 @@ func ChecklistUpdateRequestValidating(request customStructs.Request) ChecklistUp
 		}
 	}
 	if id, ok := request.Params["id"]; ok && id != "" {
-		userModel := (*&models.Checklist{}).Init()
-		userIdInt, err := strconv.Atoi(id.(string))
+		checklistModel := (*&models.Checklist{}).Init()
+		checklistIdInt, err := strconv.Atoi(id.(string))
 		if err != nil {
 			customLog.Logging(err)
 			response.Success = false
 			response.Data.Id = invalidData
 		} else {
-			user := userModel.GetOneById(userIdInt)
-			if user.Success {
-				response.Data.Id = strconv.Itoa(userIdInt)
-				response.Data.Id = strconv.Itoa(userIdInt)
+			checklist := checklistModel.GetOneById(checklistIdInt)
+			if checklist.Success {
+				response.Data.Id = strconv.Itoa(checklistIdInt)
 				if response.Data.Title != invalidData ||
 					response.Data.UserId != invalidData {
 					response.Success = true
