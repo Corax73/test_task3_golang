@@ -2,6 +2,7 @@ package validations
 
 import (
 	"checklist/customStructs"
+	"checklist/utils"
 	"fmt"
 )
 
@@ -55,4 +56,23 @@ func EntityListRequestValidating(request customStructs.Request) EntityListValida
 		response.Data.Offset = fmt.Sprintf("%s", offset)
 	}
 	return response
+}
+
+func (entityValidatedData *EntityListValidatedData) GetAsKey() string {
+	return utils.ConcatSlice([]string{
+		entityValidatedData.Data.FilterBy,
+		"-",
+		entityValidatedData.Data.FilterVal,
+		"-",
+		entityValidatedData.Data.OrderBy,
+		"-",
+		"-",
+		entityValidatedData.Data.Order,
+		"-",
+		"-",
+		entityValidatedData.Data.Limit,
+		"-",
+		"-",
+		entityValidatedData.Data.Offset,
+	})
 }

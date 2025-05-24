@@ -7,6 +7,7 @@ import (
 	"checklist/models"
 	"checklist/utils"
 	"checklist/validations"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -15,6 +16,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/redis/go-redis/v9"
 )
 
 type Router struct {
@@ -202,7 +204,37 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 		validatedData := validations.EntityListRequestValidating(request)
 		userModel := (*&models.User{}).Init()
 		if validatedData.Success {
-			response.Message = userModel.GetList(validatedData.ToMap())
+			client := redis.NewClient(&redis.Options{
+				Addr:     "localhost:6379",
+				Password: "",
+				DB:       0,
+			})
+			ctx := context.Background()
+			val, err := client.Get(ctx, validatedData.GetAsKey()).Result()
+			if err != nil {
+				customLog.Logging(err)
+				response.Message = userModel.GetList(validatedData.ToMap())
+				err := client.Set(ctx, validatedData.GetAsKey(), response.ToString(), 0).Err()
+				if err != nil {
+					customLog.Logging(err)
+				}
+			} else {
+				if val != "" {
+					jsonMap := make([]map[string]any, 100)
+					err := json.Unmarshal([]byte(val), &jsonMap)
+					if err != nil {
+						customLog.Logging(err)
+					} else {
+						response.Message = jsonMap
+					}
+				} else {
+					response.Message = userModel.GetList(validatedData.ToMap())
+					err := client.Set(ctx, validatedData.GetAsKey(), response.ToString(), 0).Err()
+					if err != nil {
+						customLog.Logging(err)
+					}
+				}
+			}
 		} else {
 			response.Message = userModel.GetList(make(map[string]string, 1))
 		}
