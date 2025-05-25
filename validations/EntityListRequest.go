@@ -58,8 +58,10 @@ func EntityListRequestValidating(request customStructs.Request) EntityListValida
 	return response
 }
 
-func (entityValidatedData *EntityListValidatedData) GetAsKey() string {
+func (entityValidatedData *EntityListValidatedData) GetAsKey(entityName string) string {
 	return utils.ConcatSlice([]string{
+		entityName,
+		"-",
 		entityValidatedData.Data.FilterBy,
 		"-",
 		entityValidatedData.Data.FilterVal,

@@ -21,6 +21,8 @@ import (
 
 type Router struct {
 	*mux.Router
+	redisClient *redis.Client
+	ctx         context.Context
 }
 
 func (router *Router) Init() *Router {
@@ -43,7 +45,15 @@ func (router *Router) Init() *Router {
 	r.HandleFunc("/checklists/{id:[0-9]+}/items/", router.getChecklistsItems).Methods("GET")
 	r.HandleFunc("/checklists/items/{id:[0-9]+}", router.updateChecklistItem).Methods("PUT")
 	r.HandleFunc("/checklists/items/{id:[0-9]+}", router.deleteChecklistItem).Methods("DELETE")
-	return &Router{r}
+
+	return &Router{r,
+		redis.NewClient(&redis.Options{
+			Addr:     "localhost:6379",
+			Password: "",
+			DB:       0,
+		}),
+		context.Background(),
+	}
 }
 
 // initProcess returns a map of request parameters, causes console output on request.
@@ -183,11 +193,21 @@ func (router *Router) updateUser(w http.ResponseWriter, r *http.Request) {
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.UserUpdateRequestValidating(request)
 		if validatedData.Success {
+			if router.redisClient == nil {
+				router = router.Init()
+			}
 			userModel := (*&models.User{}).Init()
 			result := userModel.Update(validatedData.ToMap(), validatedData.Data.Id)
 			if id, ok := result["id"]; !ok {
 				response.Message["error"] = "Error.Try again"
 			} else {
+				iter := router.redisClient.Scan(router.ctx, 0, userModel.Table(), 0).Iterator()
+				for iter.Next(router.ctx) {
+					router.redisClient.Del(router.ctx, iter.Val())
+				}
+				if err := iter.Err(); err != nil {
+					customLog.Logging(err)
+				}
 				response.Success = true
 				response.Message["id"] = id
 			}
@@ -201,20 +221,17 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.ListResponse
 	request := router.initProcess(w, r, false, "users", "read")
 	if request.Auth {
+		if router.redisClient == nil {
+			router = router.Init()
+		}
 		validatedData := validations.EntityListRequestValidating(request)
 		userModel := (*&models.User{}).Init()
 		if validatedData.Success {
-			client := redis.NewClient(&redis.Options{
-				Addr:     "localhost:6379",
-				Password: "",
-				DB:       0,
-			})
-			ctx := context.Background()
-			val, err := client.Get(ctx, validatedData.GetAsKey()).Result()
+			val, err := router.redisClient.Get(router.ctx, validatedData.GetAsKey(userModel.Table())).Result()
 			if err != nil {
 				customLog.Logging(err)
 				response.Message = userModel.GetList(validatedData.ToMap())
-				err := client.Set(ctx, validatedData.GetAsKey(), response.ToString(), 0).Err()
+				err := router.redisClient.Set(router.ctx, validatedData.GetAsKey(userModel.Table()), response.ToString(), 0).Err()
 				if err != nil {
 					customLog.Logging(err)
 				}
@@ -229,7 +246,7 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 					}
 				} else {
 					response.Message = userModel.GetList(validatedData.ToMap())
-					err := client.Set(ctx, validatedData.GetAsKey(), response.ToString(), 0).Err()
+					err := router.redisClient.Set(router.ctx, validatedData.GetAsKey(userModel.Table()), response.ToString(), 0).Err()
 					if err != nil {
 						customLog.Logging(err)
 					}
@@ -237,6 +254,10 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			response.Message = userModel.GetList(make(map[string]string, 1))
+			err := router.redisClient.Set(router.ctx, validatedData.GetAsKey(userModel.Table()), response.ToString(), 0).Err()
+			if err != nil {
+				customLog.Logging(err)
+			}
 		}
 		if len(response.Message) > 0 {
 			response.Success = true
