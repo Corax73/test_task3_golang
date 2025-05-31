@@ -146,6 +146,9 @@ func (router *Router) createUser(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.SimpleResponse
 	request := router.initProcess(w, r, true, "users", "create")
 	if request.Auth {
+		if router.customRedis == nil {
+			router = router.Init()
+		}
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.UserCreateRequestValidating(request)
 		if validatedData.Success {
@@ -164,6 +167,7 @@ func (router *Router) createUser(w http.ResponseWriter, r *http.Request) {
 				if id, ok := result["id"]; !ok {
 					response.Message["error"] = "Error.Try again"
 				} else {
+					router.customRedis.RemoveModelKeys(userModel.Table())
 					response.Success = true
 					response.Message["id"] = id
 				}
@@ -185,6 +189,9 @@ func (router *Router) updateUser(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.SimpleResponse
 	request := router.initProcess(w, r, true, "users", "update")
 	if request.Auth {
+		if router.customRedis == nil {
+			router = router.Init()
+		}
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.UserUpdateRequestValidating(request)
 		if validatedData.Success {
@@ -280,16 +287,20 @@ func (router *Router) deleteUser(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.SimpleResponse
 	request := router.initProcess(w, r, true, "users", "delete")
 	if request.Auth {
+		if router.customRedis == nil {
+			router = router.Init()
+		}
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.EntityDeleteRequestValidating(request, "users")
+		userModel := (*&models.User{}).Init()
 		if validatedData.Success {
-			userModel := (*&models.User{}).Init()
 			userIdInt, _ := strconv.Atoi(validatedData.Data.Id)
 			response.Message = userModel.Delete(userIdInt)
 		} else {
 			response.Message["error"] = "Error.Try again"
 		}
 		if len(response.Message) > 0 {
+			router.customRedis.RemoveModelKeys(userModel.Table())
 			response.Success = true
 		}
 		json.NewEncoder(w).Encode(response)
@@ -303,6 +314,9 @@ func (router *Router) createRole(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.SimpleResponse
 	request := router.initProcess(w, r, true, "roles", "create")
 	if request.Auth {
+		if router.customRedis == nil {
+			router = router.Init()
+		}
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.RoleCreateRequestValidating(request)
 		if validatedData.Success {
@@ -316,6 +330,7 @@ func (router *Router) createRole(w http.ResponseWriter, r *http.Request) {
 			if id, ok := result["id"]; !ok {
 				response.Message["error"] = "Error.Try again"
 			} else {
+				router.customRedis.RemoveModelKeys(roleModel.Table())
 				response.Success = true
 				response.Message["id"] = id
 			}
@@ -333,12 +348,61 @@ func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.ListResponse
 	request := router.initProcess(w, r, false, "roles", "read")
 	if request.Auth {
+		if router.customRedis == nil {
+			router = router.Init()
+		}
 		validatedData := validations.EntityListRequestValidating(request)
 		roleModel := (*&models.Role{}).Init()
 		if validatedData.Success {
-			response.Message = roleModel.GetList(validatedData.ToMap())
+			val, err := router.customRedis.RedisClient.Get(
+				router.customRedis.Ctx,
+				validatedData.GetAsKey(roleModel.Table()),
+			).Result()
+			if err != nil {
+				customLog.Logging(err)
+				response.Message = roleModel.GetList(validatedData.ToMap())
+				err := router.customRedis.RedisClient.Set(
+					router.customRedis.Ctx,
+					validatedData.GetAsKey(roleModel.Table()),
+					response.ToString(),
+					0,
+				).Err()
+				if err != nil {
+					customLog.Logging(err)
+				}
+			} else {
+				if val != "" {
+					jsonMap := make([]map[string]any, 100)
+					err := json.Unmarshal([]byte(val), &jsonMap)
+					if err != nil {
+						customLog.Logging(err)
+					} else {
+						response.Message = jsonMap
+					}
+				} else {
+					response.Message = roleModel.GetList(validatedData.ToMap())
+					err := router.customRedis.RedisClient.Set(
+						router.customRedis.Ctx,
+						validatedData.GetAsKey(roleModel.Table()),
+						response.ToString(),
+						0,
+					).Err()
+					if err != nil {
+						customLog.Logging(err)
+					}
+				}
+			}
 		} else {
 			response.Message = roleModel.GetList(make(map[string]string, 1))
+			err := router.customRedis.RedisClient.Set(
+				router.customRedis.Ctx,
+				validatedData.GetAsKey(roleModel.Table()),
+				response.ToString(),
+				0,
+			).Err()
+			if err != nil {
+				customLog.Logging(err)
+			}
 		}
 		if len(response.Message) > 0 {
 			response.Success = true
@@ -354,16 +418,20 @@ func (router *Router) deleteRole(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.SimpleResponse
 	request := router.initProcess(w, r, true, "roles", "delete")
 	if request.Auth {
+		if router.customRedis == nil {
+			router = router.Init()
+		}
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.EntityDeleteRequestValidating(request, "roles")
+		roleModel := (*&models.Role{}).Init()
 		if validatedData.Success {
-			roleModel := (*&models.Role{}).Init()
 			roleIdInt, _ := strconv.Atoi(validatedData.Data.Id)
 			response.Message = roleModel.Delete(roleIdInt)
 		} else {
 			response.Message["error"] = "Error.Try again"
 		}
 		if len(response.Message) > 0 {
+			router.customRedis.RemoveModelKeys(roleModel.Table())
 			response.Success = true
 		}
 		json.NewEncoder(w).Encode(response)
@@ -377,6 +445,9 @@ func (router *Router) createChecklist(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.SimpleResponse
 	request := router.initProcess(w, r, true, "checklists", "create")
 	if request.Auth {
+		if router.customRedis == nil {
+			router = router.Init()
+		}
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.ChecklistCreateRequestValidating(request)
 		if validatedData.Success {
@@ -390,6 +461,7 @@ func (router *Router) createChecklist(w http.ResponseWriter, r *http.Request) {
 			if id, ok := result["id"]; !ok {
 				response.Message["error"] = "Error.Try again"
 			} else {
+				router.customRedis.RemoveModelKeys(checklistModel.Table())
 				response.Success = true
 				response.Message["id"] = id
 			}
@@ -407,12 +479,61 @@ func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.ListResponse
 	request := router.initProcess(w, r, false, "checklists", "read")
 	if request.Auth {
+		if router.customRedis == nil {
+			router = router.Init()
+		}
 		validatedData := validations.EntityListRequestValidating(request)
 		checklistModel := (*&models.Checklist{}).Init()
 		if validatedData.Success {
-			response.Message = checklistModel.GetList(validatedData.ToMap())
+			val, err := router.customRedis.RedisClient.Get(
+				router.customRedis.Ctx,
+				validatedData.GetAsKey(checklistModel.Table()),
+			).Result()
+			if err != nil {
+				customLog.Logging(err)
+				response.Message = checklistModel.GetList(validatedData.ToMap())
+				err := router.customRedis.RedisClient.Set(
+					router.customRedis.Ctx,
+					validatedData.GetAsKey(checklistModel.Table()),
+					response.ToString(),
+					0,
+				).Err()
+				if err != nil {
+					customLog.Logging(err)
+				}
+			} else {
+				if val != "" {
+					jsonMap := make([]map[string]any, 100)
+					err := json.Unmarshal([]byte(val), &jsonMap)
+					if err != nil {
+						customLog.Logging(err)
+					} else {
+						response.Message = jsonMap
+					}
+				} else {
+					response.Message = checklistModel.GetList(validatedData.ToMap())
+					err := router.customRedis.RedisClient.Set(
+						router.customRedis.Ctx,
+						validatedData.GetAsKey(checklistModel.Table()),
+						response.ToString(),
+						0,
+					).Err()
+					if err != nil {
+						customLog.Logging(err)
+					}
+				}
+			}
 		} else {
 			response.Message = checklistModel.GetList(make(map[string]string, 1))
+			err := router.customRedis.RedisClient.Set(
+				router.customRedis.Ctx,
+				validatedData.GetAsKey(checklistModel.Table()),
+				response.ToString(),
+				0,
+			).Err()
+			if err != nil {
+				customLog.Logging(err)
+			}
 		}
 		if len(response.Message) > 0 {
 			response.Success = true
@@ -428,6 +549,9 @@ func (router *Router) updateChecklist(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.SimpleResponse
 	request := router.initProcess(w, r, true, "checklists", "update")
 	if request.Auth {
+		if router.customRedis == nil {
+			router = router.Init()
+		}
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.ChecklistUpdateRequestValidating(request)
 		if validatedData.Success {
@@ -436,6 +560,7 @@ func (router *Router) updateChecklist(w http.ResponseWriter, r *http.Request) {
 			if id, ok := result["id"]; !ok {
 				response.Message["error"] = "Error.Try again"
 			} else {
+				router.customRedis.RemoveModelKeys(checklistModel.Table())
 				response.Success = true
 				response.Message["id"] = id
 			}
@@ -449,16 +574,20 @@ func (router *Router) deleteChecklist(w http.ResponseWriter, r *http.Request) {
 	var response customStructs.SimpleResponse
 	request := router.initProcess(w, r, true, "checklists", "delete")
 	if request.Auth {
+		if router.customRedis == nil {
+			router = router.Init()
+		}
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.EntityDeleteRequestValidating(request, "checklists")
+		checklistModel := (*&models.Checklist{}).Init()
 		if validatedData.Success {
-			checklistModel := (*&models.Checklist{}).Init()
 			checklistIdInt, _ := strconv.Atoi(validatedData.Data.Id)
 			response.Message = checklistModel.Delete(checklistIdInt)
 		} else {
 			response.Message["error"] = "Error.Try again"
 		}
 		if len(response.Message) > 0 {
+			router.customRedis.RemoveModelKeys(checklistModel.Table())
 			response.Success = true
 		}
 		json.NewEncoder(w).Encode(response)
@@ -472,11 +601,14 @@ func (router *Router) createChecklistItems(w http.ResponseWriter, r *http.Reques
 	var response customStructs.SimpleResponse
 	request := router.initProcess(w, r, true, "checklist_items", "create")
 	if request.Auth {
+		if router.customRedis == nil {
+			router = router.Init()
+		}
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.ChecklistItemCreateRequestValidating(request)
 		if validatedData.Success {
-			checklistModel := (*&models.ChecklistItem{}).Init()
-			result := checklistModel.Create(map[string]string{
+			checklistItemModel := (*&models.ChecklistItem{}).Init()
+			result := checklistItemModel.Create(map[string]string{
 				"id":           "",
 				"checklist_id": validatedData.Data.ChecklistId,
 				"is_completed": validatedData.Data.IsCompleted,
@@ -486,6 +618,7 @@ func (router *Router) createChecklistItems(w http.ResponseWriter, r *http.Reques
 			if id, ok := result["id"]; !ok {
 				response.Message["error"] = "Error.Try again"
 			} else {
+				router.customRedis.RemoveModelKeys(checklistItemModel.Table())
 				response.Success = true
 				response.Message["id"] = id
 			}
@@ -503,16 +636,65 @@ func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request)
 	var response customStructs.ListResponse
 	request := router.initProcess(w, r, false, "checklist_items", "read")
 	if request.Auth {
+		if router.customRedis == nil {
+			router = router.Init()
+		}
 		validatedData := validations.EntityListRequestValidating(request)
-		checklistModel := (*&models.ChecklistItem{}).Init()
+		checklistItemModel := (*&models.ChecklistItem{}).Init()
 		if validatedData.Success {
 			if validatedData.Data.Id != "" {
 				validatedData.Data.FilterBy = "checklist_id"
 				validatedData.Data.FilterVal = validatedData.Data.Id
 			}
-			response.Message = checklistModel.GetList(validatedData.ToMap())
+			val, err := router.customRedis.RedisClient.Get(
+				router.customRedis.Ctx,
+				validatedData.GetAsKey(checklistItemModel.Table()),
+			).Result()
+			if err != nil {
+				customLog.Logging(err)
+				response.Message = checklistItemModel.GetList(validatedData.ToMap())
+				err := router.customRedis.RedisClient.Set(
+					router.customRedis.Ctx,
+					validatedData.GetAsKey(checklistItemModel.Table()),
+					response.ToString(),
+					0,
+				).Err()
+				if err != nil {
+					customLog.Logging(err)
+				}
+			} else {
+				if val != "" {
+					jsonMap := make([]map[string]any, 100)
+					err := json.Unmarshal([]byte(val), &jsonMap)
+					if err != nil {
+						customLog.Logging(err)
+					} else {
+						response.Message = jsonMap
+					}
+				} else {
+					response.Message = checklistItemModel.GetList(validatedData.ToMap())
+					err := router.customRedis.RedisClient.Set(
+						router.customRedis.Ctx,
+						validatedData.GetAsKey(checklistItemModel.Table()),
+						response.ToString(),
+						0,
+					).Err()
+					if err != nil {
+						customLog.Logging(err)
+					}
+				}
+			}
 		} else {
-			response.Message = checklistModel.GetList(make(map[string]string, 1))
+			response.Message = checklistItemModel.GetList(make(map[string]string, 1))
+			err := router.customRedis.RedisClient.Set(
+				router.customRedis.Ctx,
+				validatedData.GetAsKey(checklistItemModel.Table()),
+				response.ToString(),
+				0,
+			).Err()
+			if err != nil {
+				customLog.Logging(err)
+			}
 		}
 		if len(response.Message) > 0 {
 			response.Success = true
@@ -528,16 +710,20 @@ func (router *Router) deleteChecklistItem(w http.ResponseWriter, r *http.Request
 	var response customStructs.SimpleResponse
 	request := router.initProcess(w, r, true, "checklist_items", "delete")
 	if request.Auth {
+		if router.customRedis == nil {
+			router = router.Init()
+		}
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.EntityDeleteRequestValidating(request, "checklist_items")
+		checklistItemModel := (*&models.ChecklistItem{}).Init()
 		if validatedData.Success {
-			checklistItemModel := (*&models.ChecklistItem{}).Init()
 			checklistItemIdInt, _ := strconv.Atoi(validatedData.Data.Id)
 			response.Message = checklistItemModel.Delete(checklistItemIdInt)
 		} else {
 			response.Message["error"] = "Error.Try again"
 		}
 		if len(response.Message) > 0 {
+			router.customRedis.RemoveModelKeys(checklistItemModel.Table())
 			response.Success = true
 		}
 		json.NewEncoder(w).Encode(response)
@@ -551,6 +737,9 @@ func (router *Router) updateChecklistItem(w http.ResponseWriter, r *http.Request
 	var response customStructs.SimpleResponse
 	request := router.initProcess(w, r, true, "checklist_items", "update")
 	if request.Auth {
+		if router.customRedis == nil {
+			router = router.Init()
+		}
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.ChecklistItemUpdateRequestValidating(request)
 		if validatedData.Success {
@@ -559,6 +748,7 @@ func (router *Router) updateChecklistItem(w http.ResponseWriter, r *http.Request
 			if id, ok := result["id"]; !ok {
 				response.Message["error"] = "Error.Try again"
 			} else {
+				router.customRedis.RemoveModelKeys(checklistItemModel.Table())
 				response.Success = true
 				response.Message["id"] = id
 			}
