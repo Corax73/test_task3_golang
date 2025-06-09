@@ -48,6 +48,7 @@ func (redisClient *RedisClient) getAllKeys() []string {
 	return resp
 }
 
+// RemoveModelKeys removes keys that start with the passed string.
 func (redisClient *RedisClient) RemoveModelKeys(modelName string) {
 	if modelName != "" {
 		keys := redisClient.getAllKeys()

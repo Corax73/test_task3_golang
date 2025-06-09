@@ -181,16 +181,19 @@ func GetMapWithoutKeys(map1 map[string]string, exceptKeys []string) map[string]s
 	return resp
 }
 
+// IsEmail returns a boolean value checking the passed string against the pattern of matching the email address.
 func IsEmail(email string) bool {
 	emailRegexp := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
 	return emailRegexp.MatchString(email)
 }
 
+// HashPassword returns the hash of the passed string and a possible error.
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(bytes), err
 }
 
+// CheckPasswordHash returns a boolean value comparing the passed strings (password and hash)
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
