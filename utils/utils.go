@@ -13,9 +13,12 @@ import (
 )
 
 // GetConfFromEnvFile receives data for the database from the environment file. If successful, returns a non-empty map.
-func GetConfFromEnvFile() map[string]string {
+func GetConfFromEnvFile(filename string) map[string]string {
 	resp := make(map[string]string)
-	envFile, err := godotenv.Read(".env")
+	if filename == "" {
+		filename = ".env"
+	}
+	envFile, err := godotenv.Read(filename)
 	if err == nil {
 		resp = envFile
 	} else {

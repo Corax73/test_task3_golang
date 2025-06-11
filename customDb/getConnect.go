@@ -10,7 +10,7 @@ import (
 
 // GetConnect receives data for the database from the environment file, if successful, returns the connection from the database.
 func GetConnect() *sql.DB {
-	settings := utils.GetConfFromEnvFile()
+	settings := utils.GetConfFromEnvFile("")
 	dsnStr := GetDsnString(settings)
 	if dsnStr != "" {
 		db, err := sql.Open("postgres", dsnStr)

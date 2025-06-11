@@ -16,7 +16,7 @@ type RedisClient struct {
 }
 
 func GetClient(ctx context.Context) *RedisClient {
-	envData := utils.GetConfFromEnvFile()
+	envData := utils.GetConfFromEnvFile("")
 	redisPort := ":6379"
 	redisPassword := ""
 	if val, ok := envData["REDIS_PORT"]; ok {

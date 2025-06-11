@@ -26,7 +26,7 @@ func main() {
 	errChan := make(chan error, 1)
 	defer close(errChan)
 	mainPort := ":8080"
-	envData := utils.GetConfFromEnvFile()
+	envData := utils.GetConfFromEnvFile("")
 	if val, ok := envData["MAIN_PORT"]; ok {
 		mainPort = utils.ConcatSlice([]string{":", val})
 	}

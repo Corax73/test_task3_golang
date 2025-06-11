@@ -123,7 +123,7 @@ func (router *Router) initProcess(w http.ResponseWriter, r *http.Request, getPos
 // checkEnv looks for a key `CONSOLE_OUT` in the .env file and returns true if its value is true.
 func (router *Router) checkEnv() bool {
 	var resp bool
-	envData := utils.GetConfFromEnvFile()
+	envData := utils.GetConfFromEnvFile("")
 	if val, ok := envData["CONSOLE_OUT"]; ok && val == "true" {
 		resp = true
 	}
