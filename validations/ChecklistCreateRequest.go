@@ -32,7 +32,7 @@ func ChecklistCreateRequestValidating(request customStructs.Request) ChecklistCr
 		response.Data.Title = invalidData
 	}
 	if userId, ok := request.Params["user_id"]; ok && userId != "" {
-		userModel := (*&models.User{}).Init()
+		userModel := (&models.User{}).Init()
 		userIdInt := int(int64(userId.(float64)))
 		role := userModel.GetOneById(userIdInt)
 		if role.Success {

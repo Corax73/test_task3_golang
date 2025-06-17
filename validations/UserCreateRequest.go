@@ -60,7 +60,7 @@ func UserCreateRequestValidating(request customStructs.Request) UserCreateValida
 		response.Data.Password = invalidData
 	}
 	if roleId, ok := request.Params["role_id"]; ok && roleId != "" {
-		roleModel := (*&models.Role{}).Init()
+		roleModel := (&models.Role{}).Init()
 		roleIdInt := int(int64(roleId.(float64)))
 		role := roleModel.GetOneById(roleIdInt)
 		if role.Success {

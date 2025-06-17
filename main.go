@@ -21,7 +21,7 @@ func main() {
 	customDb.RunTableMigration(db, "users")
 	customDb.RunTableMigration(db, "checklists")
 	customDb.RunTableMigration(db, "checklist_items")
-	router := (*&router.Router{}).Init()
+	router := (&router.Router{}).Init()
 	var wg sync.WaitGroup
 	errChan := make(chan error, 1)
 	defer close(errChan)

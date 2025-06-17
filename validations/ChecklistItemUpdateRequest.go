@@ -42,7 +42,7 @@ func ChecklistItemUpdateRequestValidating(request customStructs.Request) Checkli
 		response.Data.Description = fmt.Sprintf("%s", description)
 	}
 	if id, ok := request.Params["id"]; ok && id != "" {
-		checklistItemModel := (*&models.ChecklistItem{}).Init()
+		checklistItemModel := (&models.ChecklistItem{}).Init()
 		checklistItemIdInt, err := strconv.Atoi(id.(string))
 		if err != nil {
 			customLog.Logging(err)

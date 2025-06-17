@@ -11,7 +11,7 @@ import (
 // Returns the result of the password check and user data
 func BasicCheck(login, password string) (bool, map[string]any) {
 	var isAuth bool
-	userModel := (*&models.User{}).Init()
+	userModel := (&models.User{}).Init()
 	res := userModel.GetOneByField("login", login, "roles")
 	if res.Success {
 		if err := bcrypt.CompareHashAndPassword([]byte(string(fmt.Sprintf("%s", res.Message["password"]))), []byte(password)); err == nil {

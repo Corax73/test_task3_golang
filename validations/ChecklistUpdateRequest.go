@@ -33,7 +33,7 @@ func ChecklistUpdateRequestValidating(request customStructs.Request) ChecklistUp
 		response.Data.Title = invalidData
 	}
 	if userId, ok := request.Params["user_id"]; ok && userId != "" {
-		userModel := (*&models.User{}).Init()
+		userModel := (&models.User{}).Init()
 		userIdInt := int(int64(userId.(float64)))
 		user := userModel.GetOneById(userIdInt)
 		if user.Success {
@@ -44,7 +44,7 @@ func ChecklistUpdateRequestValidating(request customStructs.Request) ChecklistUp
 		}
 	}
 	if id, ok := request.Params["id"]; ok && id != "" {
-		checklistModel := (*&models.Checklist{}).Init()
+		checklistModel := (&models.Checklist{}).Init()
 		checklistIdInt, err := strconv.Atoi(id.(string))
 		if err != nil {
 			customLog.Logging(err)

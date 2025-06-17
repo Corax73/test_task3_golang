@@ -52,7 +52,7 @@ func UserUpdateRequestValidating(request customStructs.Request) UserUpdateValida
 		}
 	}
 	if roleId, ok := request.Params["role_id"]; ok && roleId != "" {
-		roleModel := (*&models.Role{}).Init()
+		roleModel := (&models.Role{}).Init()
 		roleIdInt := int(int64(roleId.(float64)))
 		role := roleModel.GetOneById(roleIdInt)
 		if role.Success {
@@ -63,7 +63,7 @@ func UserUpdateRequestValidating(request customStructs.Request) UserUpdateValida
 		}
 	}
 	if id, ok := request.Params["id"]; ok && id != "" {
-		userModel := (*&models.User{}).Init()
+		userModel := (&models.User{}).Init()
 		userIdInt, err := strconv.Atoi(id.(string))
 		if err != nil {
 			customLog.Logging(err)

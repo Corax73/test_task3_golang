@@ -43,7 +43,7 @@ func ChecklistItemCreateRequestValidating(request customStructs.Request) Checkli
 		response.Data.Description = invalidData
 	}
 	if checklistId, ok := request.Params["checklist_id"]; ok && checklistId != "" {
-		checklistModel := (*&models.Checklist{}).Init()
+		checklistModel := (&models.Checklist{}).Init()
 		checklistIdInt := int(int64(checklistId.(float64)))
 		checklist := checklistModel.GetOneById(checklistIdInt)
 		if checklist.Success {

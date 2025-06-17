@@ -154,7 +154,7 @@ func (router *Router) createUser(w http.ResponseWriter, r *http.Request) {
 		if validatedData.Success {
 			passHash, err := utils.HashPassword(validatedData.Data.Password)
 			if err == nil {
-				userModel := (*&models.User{}).Init()
+				userModel := (&models.User{}).Init()
 				result := userModel.Create(map[string]string{
 					"id":                  "",
 					"login":               validatedData.Data.Login,
@@ -198,7 +198,7 @@ func (router *Router) updateUser(w http.ResponseWriter, r *http.Request) {
 			if router.customRedis == nil {
 				router = router.Init()
 			}
-			userModel := (*&models.User{}).Init()
+			userModel := (&models.User{}).Init()
 			result := userModel.Update(validatedData.ToMap(), validatedData.Data.Id)
 			if id, ok := result["id"]; !ok {
 				response.Message["error"] = "Error.Try again"
@@ -221,7 +221,7 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 			router = router.Init()
 		}
 		validatedData := validations.EntityListRequestValidating(request)
-		userModel := (*&models.User{}).Init()
+		userModel := (&models.User{}).Init()
 		if validatedData.Success {
 			val, err := router.customRedis.RedisClient.Get(
 				router.customRedis.Ctx,
@@ -292,7 +292,7 @@ func (router *Router) deleteUser(w http.ResponseWriter, r *http.Request) {
 		}
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.EntityDeleteRequestValidating(request, "users")
-		userModel := (*&models.User{}).Init()
+		userModel := (&models.User{}).Init()
 		if validatedData.Success {
 			userIdInt, _ := strconv.Atoi(validatedData.Data.Id)
 			response.Message = userModel.Delete(userIdInt)
@@ -320,7 +320,7 @@ func (router *Router) createRole(w http.ResponseWriter, r *http.Request) {
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.RoleCreateRequestValidating(request)
 		if validatedData.Success {
-			roleModel := (*&models.Role{}).Init()
+			roleModel := (&models.Role{}).Init()
 			result := roleModel.Create(map[string]string{
 				"id":         "",
 				"title":      validatedData.Data.Title,
@@ -352,7 +352,7 @@ func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
 			router = router.Init()
 		}
 		validatedData := validations.EntityListRequestValidating(request)
-		roleModel := (*&models.Role{}).Init()
+		roleModel := (&models.Role{}).Init()
 		if validatedData.Success {
 			val, err := router.customRedis.RedisClient.Get(
 				router.customRedis.Ctx,
@@ -423,7 +423,7 @@ func (router *Router) deleteRole(w http.ResponseWriter, r *http.Request) {
 		}
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.EntityDeleteRequestValidating(request, "roles")
-		roleModel := (*&models.Role{}).Init()
+		roleModel := (&models.Role{}).Init()
 		if validatedData.Success {
 			roleIdInt, _ := strconv.Atoi(validatedData.Data.Id)
 			response.Message = roleModel.Delete(roleIdInt)
@@ -451,7 +451,7 @@ func (router *Router) createChecklist(w http.ResponseWriter, r *http.Request) {
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.ChecklistCreateRequestValidating(request)
 		if validatedData.Success {
-			checklistModel := (*&models.Checklist{}).Init()
+			checklistModel := (&models.Checklist{}).Init()
 			result := checklistModel.Create(map[string]string{
 				"id":         "",
 				"user_id":    validatedData.Data.UserId,
@@ -483,7 +483,7 @@ func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 			router = router.Init()
 		}
 		validatedData := validations.EntityListRequestValidating(request)
-		checklistModel := (*&models.Checklist{}).Init()
+		checklistModel := (&models.Checklist{}).Init()
 		if validatedData.Success {
 			val, err := router.customRedis.RedisClient.Get(
 				router.customRedis.Ctx,
@@ -555,7 +555,7 @@ func (router *Router) updateChecklist(w http.ResponseWriter, r *http.Request) {
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.ChecklistUpdateRequestValidating(request)
 		if validatedData.Success {
-			checklistModel := (*&models.Checklist{}).Init()
+			checklistModel := (&models.Checklist{}).Init()
 			result := checklistModel.Update(validatedData.ToMap(), validatedData.Data.Id)
 			if id, ok := result["id"]; !ok {
 				response.Message["error"] = "Error.Try again"
@@ -579,7 +579,7 @@ func (router *Router) deleteChecklist(w http.ResponseWriter, r *http.Request) {
 		}
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.EntityDeleteRequestValidating(request, "checklists")
-		checklistModel := (*&models.Checklist{}).Init()
+		checklistModel := (&models.Checklist{}).Init()
 		if validatedData.Success {
 			checklistIdInt, _ := strconv.Atoi(validatedData.Data.Id)
 			response.Message = checklistModel.Delete(checklistIdInt)
@@ -607,7 +607,7 @@ func (router *Router) createChecklistItems(w http.ResponseWriter, r *http.Reques
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.ChecklistItemCreateRequestValidating(request)
 		if validatedData.Success {
-			checklistItemModel := (*&models.ChecklistItem{}).Init()
+			checklistItemModel := (&models.ChecklistItem{}).Init()
 			result := checklistItemModel.Create(map[string]string{
 				"id":           "",
 				"checklist_id": validatedData.Data.ChecklistId,
@@ -640,7 +640,7 @@ func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request)
 			router = router.Init()
 		}
 		validatedData := validations.EntityListRequestValidating(request)
-		checklistItemModel := (*&models.ChecklistItem{}).Init()
+		checklistItemModel := (&models.ChecklistItem{}).Init()
 		if validatedData.Success {
 			if validatedData.Data.Id != "" {
 				validatedData.Data.FilterBy = "checklist_id"
@@ -715,7 +715,7 @@ func (router *Router) deleteChecklistItem(w http.ResponseWriter, r *http.Request
 		}
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.EntityDeleteRequestValidating(request, "checklist_items")
-		checklistItemModel := (*&models.ChecklistItem{}).Init()
+		checklistItemModel := (&models.ChecklistItem{}).Init()
 		if validatedData.Success {
 			checklistItemIdInt, _ := strconv.Atoi(validatedData.Data.Id)
 			response.Message = checklistItemModel.Delete(checklistItemIdInt)
@@ -743,7 +743,7 @@ func (router *Router) updateChecklistItem(w http.ResponseWriter, r *http.Request
 		response.Message = make(map[string]any, len(request.Params))
 		validatedData := validations.ChecklistItemUpdateRequestValidating(request)
 		if validatedData.Success {
-			checklistItemModel := (*&models.ChecklistItem{}).Init()
+			checklistItemModel := (&models.ChecklistItem{}).Init()
 			result := checklistItemModel.Update(validatedData.ToMap(), validatedData.Data.Id)
 			if id, ok := result["id"]; !ok {
 				response.Message["error"] = "Error.Try again"

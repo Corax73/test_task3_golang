@@ -20,7 +20,7 @@ func EntityDeleteRequestValidating(request customStructs.Request, entityName str
 	invalidData := "Invalid data"
 	if id, ok := request.Params["id"]; ok && id != "" && entityName != "" {
 		if entityName == "users" {
-			userModel := (*&models.User{}).Init()
+			userModel := (&models.User{}).Init()
 			userIdInt, err := strconv.Atoi(id.(string))
 			if err != nil {
 				customLog.Logging(err)
@@ -37,7 +37,7 @@ func EntityDeleteRequestValidating(request customStructs.Request, entityName str
 				}
 			}
 		} else if entityName == "roles" {
-			roleModel := (*&models.Role{}).Init()
+			roleModel := (&models.Role{}).Init()
 			roleIdInt, err := strconv.Atoi(id.(string))
 			if err != nil {
 				customLog.Logging(err)
@@ -54,7 +54,7 @@ func EntityDeleteRequestValidating(request customStructs.Request, entityName str
 				}
 			}
 		} else if entityName == "checklists" {
-			checklistModel := (*&models.Checklist{}).Init()
+			checklistModel := (&models.Checklist{}).Init()
 			checklistIdInt, err := strconv.Atoi(id.(string))
 			if err != nil {
 				customLog.Logging(err)
@@ -71,7 +71,7 @@ func EntityDeleteRequestValidating(request customStructs.Request, entityName str
 				}
 			}
 		} else if entityName == "checklist_items" {
-			checklistItemModel := (*&models.ChecklistItem{}).Init()
+			checklistItemModel := (&models.ChecklistItem{}).Init()
 			checklistItemIdInt, err := strconv.Atoi(id.(string))
 			if err != nil {
 				customLog.Logging(err)

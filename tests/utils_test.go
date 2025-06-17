@@ -1,4 +1,4 @@
-package utilstest
+package app_test
 
 import (
 	"checklist/utils"
