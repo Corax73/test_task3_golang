@@ -47,7 +47,7 @@ func (router *Router) Init() *Router {
 
 	return &Router{
 		r,
-		customRedis.GetClient(context.Background()),
+		customRedis.GetClient(context.Background(), ""),
 	}
 }
 
