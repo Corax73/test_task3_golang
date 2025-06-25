@@ -45,6 +45,8 @@ func (router *Router) Init() *Router {
 	r.HandleFunc("/checklists/items/{id:[0-9]+}", router.updateChecklistItem).Methods("PUT")
 	r.HandleFunc("/checklists/items/{id:[0-9]+}", router.deleteChecklistItem).Methods("DELETE")
 
+	r.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", http.FileServer(http.Dir("./swagger/"))))
+
 	return &Router{
 		r,
 		customRedis.GetClient(context.Background(), ""),

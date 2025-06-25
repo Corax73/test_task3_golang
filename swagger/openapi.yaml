@@ -1,0 +1,27 @@
+openapi: 3.1.3
+info:
+  title: Swagger Go api - OpenAPI 3.0
+  version: 1.0.11
+servers:
+  - url: http://localhost:8080
+paths:
+  /users/:
+    get:
+      tags:
+        - users
+      summary: get users
+      description: Returns list
+      security:
+        - basicAuth: []
+      responses:
+        "200":
+          description: successful operation
+        "400":
+          description: Invalid route
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+      description: basicAuth
+      in: header
