@@ -11,6 +11,21 @@ paths:
         - users
       summary: get users
       description: Returns list
+      parameters:
+        - in: query
+          required: false
+          name: sort
+          schema:
+            type: string
+            example: id--desc
+          description: sort field-direction
+        - in: query
+          required: false
+          name: filter
+          schema:
+            type: string
+            example: login--test1
+          description: field to filter-value
       security:
         - basicAuth: []
       responses:
@@ -24,4 +39,3 @@ components:
       type: http
       scheme: basic
       description: basicAuth
-      in: header

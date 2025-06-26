@@ -3,6 +3,7 @@ package app_test
 import (
 	"checklist/customRedis"
 	"context"
+	"fmt"
 	"reflect"
 	"slices"
 	"testing"
@@ -28,34 +29,40 @@ func TestGetClient(t *testing.T) {
 }
 func TestGetAllKeys(t *testing.T) {
 	client := customRedis.GetClient(context.Background(), "env.test")
-	err := client.RedisClient.Set(
-		client.Ctx,
-		"1",
-		"data1",
-		0,
-	).Err()
+	err := client.RedisClient.FlushDB(context.Background()).Err()
 	if err != nil {
 		t.Errorf("%s", err.Error())
 	} else {
-		err := client.RedisClient.Set(
+		err = client.RedisClient.Set(
 			client.Ctx,
-			"2",
-			"data2",
+			"1",
+			"data1",
 			0,
 		).Err()
 		if err != nil {
 			t.Errorf("%s", err.Error())
-		}
-		keys := client.GetAllKeys()
-		if len(keys) == 2 {
-			t.Log("Done checking quantity keys")
 		} else {
-			t.Errorf("Checking quantity keys was incorrect")
-		}
-		if slices.Contains(keys, "1") && slices.Contains(keys, "2") {
-			t.Log("Done checking keys")
-		} else {
-			t.Errorf("Checking keys was incorrect")
+			err = client.RedisClient.Set(
+				client.Ctx,
+				"2",
+				"data2",
+				0,
+			).Err()
+			if err != nil {
+				t.Errorf("%s", err.Error())
+			}
+			keys := client.GetAllKeys()
+			fmt.Println(keys)
+			if len(keys) == 2 {
+				t.Log("Done checking quantity keys")
+			} else {
+				t.Errorf("Checking quantity keys was incorrect")
+			}
+			if slices.Contains(keys, "1") && slices.Contains(keys, "2") {
+				t.Log("Done checking keys")
+			} else {
+				t.Errorf("Checking keys was incorrect")
+			}
 		}
 	}
 }
