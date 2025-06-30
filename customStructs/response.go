@@ -2,7 +2,9 @@ package customStructs
 
 import (
 	"checklist/customLog"
+	"checklist/utils"
 	"encoding/json"
+	"strconv"
 )
 
 type SimpleResponse struct {
@@ -13,6 +15,7 @@ type SimpleResponse struct {
 type ListResponse struct {
 	Success bool
 	Message []map[string]any
+	Total   int
 }
 
 func (listResponse *ListResponse) ToString() string {
@@ -22,6 +25,7 @@ func (listResponse *ListResponse) ToString() string {
 		customLog.Logging(err)
 	} else {
 		resp = string(jsonData)
+		resp = utils.ConcatSlice([]string{resp, "\"total\":", strconv.Itoa(listResponse.Total)})
 	}
 	return resp
 }

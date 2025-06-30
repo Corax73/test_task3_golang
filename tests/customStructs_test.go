@@ -2,6 +2,7 @@ package app_test
 
 import (
 	"checklist/customStructs"
+	"fmt"
 	"testing"
 )
 
@@ -23,9 +24,11 @@ func TestToString(t *testing.T) {
 				"key1": map[string]int{"1": 1, "2": 2, "3": 3},
 			},
 		},
+		Total: 3,
 	}
-	validString := `[{"key1":1,"key2":"2","key3":true},{"key1":1,"key2":2,"key3":[1,2,3]},{"key1":{"1":1,"2":2,"3":3}}]`
+	validString := `[{"key1":1,"key2":"2","key3":true},{"key1":1,"key2":2,"key3":[1,2,3]},{"key1":{"1":1,"2":2,"3":3}}]"total":3`
 	inValidString := `[{"key1":1,"key2":"2","key3":true},{"key1":1,"key2":2,"key3":[1,2,3]}]`
+	fmt.Println(simpleResponse.ToString())
 	if simpleResponse.ToString() == validString {
 		t.Log("Done with validString")
 	} else {

@@ -111,7 +111,7 @@ func (model *Model) Save() map[string]string {
 	return response
 }
 
-func (model *Model) GetList(params map[string]string) []map[string]any {
+func (model *Model) GetList(params map[string]string) ([]map[string]any, int) {
 	var resp []map[string]any
 	db := customDb.GetConnect()
 	defer customDb.CloseConnect(db)
@@ -185,7 +185,7 @@ func (model *Model) GetList(params map[string]string) []map[string]any {
 		queryStrToTotal,
 		" ;",
 	})
-	var total string
+	var total int
 	err := db.QueryRow(queryStrToTotal).Scan(&total)
 	if err != nil {
 		customLog.Logging(err)
@@ -200,10 +200,7 @@ func (model *Model) GetList(params map[string]string) []map[string]any {
 	} else {
 		resp = utils.SqlToMap(rows)
 	}
-	totalResp := make(map[string]any, 1)
-	totalResp["total"] = total
-	resp = append(resp, totalResp)
-	return resp
+	return resp, total
 }
 
 func (model *Model) GetOneById(id int) customStructs.SimpleResponse {
