@@ -37,6 +37,49 @@ paths:
                 $ref: "#/components/schemas/UsersList"
         "400":
           description: Invalid route
+    post:
+      tags:
+        - users
+      summary: Add a new users
+      description: Add a new user, return its id
+      requestBody:
+        description: Create a new users
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - "login"
+                - "password"
+                - "email"
+                - "role_id"
+              properties:
+                login:
+                  description: Login
+                  example: test1
+                  type: string
+                password:
+                  type: string
+                  example: "12345aA!!"
+                email:
+                  type: string
+                  example: "admin@admin.com"
+                role_id:
+                  type: integer
+                  example: 1
+      security:
+        - basicAuth: []
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreationSuccess"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
 components:
   securitySchemes:
     basicAuth:
@@ -73,3 +116,24 @@ components:
         email:
           type: string
           example: "admin@admin.com"
+        id:
+          type: integer
+          example: 1
+        login:
+          type: string
+          example: "test1"
+        role_id:
+          type: integer
+          example: 1
+    CreationSuccess:
+      type: object
+      properties:
+        Success:
+          type: boolean
+          example: true
+        Message:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1

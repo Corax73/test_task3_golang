@@ -178,6 +178,7 @@ func (router *Router) createUser(w http.ResponseWriter, r *http.Request) {
 				response.Message["password"] = "Please try again, if the error persists, contact the administrator"
 			}
 		} else {
+			w.WriteHeader(http.StatusUnprocessableEntity)
 			response.Message = validatedData.ToMap()
 		}
 		json.NewEncoder(w).Encode(response)
@@ -209,6 +210,8 @@ func (router *Router) updateUser(w http.ResponseWriter, r *http.Request) {
 				response.Success = true
 				response.Message["id"] = id
 			}
+		} else {
+			w.WriteHeader(http.StatusUnprocessableEntity)
 		}
 	}
 	json.NewEncoder(w).Encode(response)
@@ -277,6 +280,8 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 		}
 		if len(response.Message) > 0 {
 			response.Success = true
+		} else {
+			w.WriteHeader(http.StatusNotFound)
 		}
 		json.NewEncoder(w).Encode(response)
 	} else {
@@ -300,6 +305,7 @@ func (router *Router) deleteUser(w http.ResponseWriter, r *http.Request) {
 			response.Message = userModel.Delete(userIdInt)
 		} else {
 			response.Message["error"] = "Error.Try again"
+			w.WriteHeader(http.StatusNotFound)
 		}
 		if len(response.Message) > 0 {
 			router.customRedis.RemoveModelKeys(userModel.Table())
@@ -338,6 +344,7 @@ func (router *Router) createRole(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			response.Message = validatedData.ToMap()
+			w.WriteHeader(http.StatusUnprocessableEntity)
 		}
 		json.NewEncoder(w).Encode(response)
 	} else {
@@ -408,6 +415,8 @@ func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
 		}
 		if len(response.Message) > 0 {
 			response.Success = true
+		} else {
+			w.WriteHeader(http.StatusNotFound)
 		}
 		json.NewEncoder(w).Encode(response)
 	} else {
@@ -431,6 +440,7 @@ func (router *Router) deleteRole(w http.ResponseWriter, r *http.Request) {
 			response.Message = roleModel.Delete(roleIdInt)
 		} else {
 			response.Message["error"] = "Error.Try again"
+			w.WriteHeader(http.StatusNotFound)
 		}
 		if len(response.Message) > 0 {
 			router.customRedis.RemoveModelKeys(roleModel.Table())
@@ -469,6 +479,7 @@ func (router *Router) createChecklist(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			response.Message = validatedData.ToMap()
+			w.WriteHeader(http.StatusUnprocessableEntity)
 		}
 		json.NewEncoder(w).Encode(response)
 	} else {
@@ -539,6 +550,8 @@ func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 		}
 		if len(response.Message) > 0 {
 			response.Success = true
+		} else {
+			w.WriteHeader(http.StatusNotFound)
 		}
 		json.NewEncoder(w).Encode(response)
 	} else {
@@ -566,6 +579,8 @@ func (router *Router) updateChecklist(w http.ResponseWriter, r *http.Request) {
 				response.Success = true
 				response.Message["id"] = id
 			}
+		} else {
+			w.WriteHeader(http.StatusNotFound)
 		}
 	}
 	json.NewEncoder(w).Encode(response)
@@ -587,6 +602,7 @@ func (router *Router) deleteChecklist(w http.ResponseWriter, r *http.Request) {
 			response.Message = checklistModel.Delete(checklistIdInt)
 		} else {
 			response.Message["error"] = "Error.Try again"
+			w.WriteHeader(http.StatusNotFound)
 		}
 		if len(response.Message) > 0 {
 			router.customRedis.RemoveModelKeys(checklistModel.Table())
@@ -626,6 +642,7 @@ func (router *Router) createChecklistItems(w http.ResponseWriter, r *http.Reques
 			}
 		} else {
 			response.Message = validatedData.ToMap()
+			w.WriteHeader(http.StatusUnprocessableEntity)
 		}
 		json.NewEncoder(w).Encode(response)
 	} else {
@@ -700,6 +717,8 @@ func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request)
 		}
 		if len(response.Message) > 0 {
 			response.Success = true
+		} else {
+			w.WriteHeader(http.StatusNotFound)
 		}
 		json.NewEncoder(w).Encode(response)
 	} else {
@@ -723,6 +742,7 @@ func (router *Router) deleteChecklistItem(w http.ResponseWriter, r *http.Request
 			response.Message = checklistItemModel.Delete(checklistItemIdInt)
 		} else {
 			response.Message["error"] = "Error.Try again"
+			w.WriteHeader(http.StatusNotFound)
 		}
 		if len(response.Message) > 0 {
 			router.customRedis.RemoveModelKeys(checklistItemModel.Table())
@@ -754,6 +774,8 @@ func (router *Router) updateChecklistItem(w http.ResponseWriter, r *http.Request
 				response.Success = true
 				response.Message["id"] = id
 			}
+		} else {
+			w.WriteHeader(http.StatusUnprocessableEntity)
 		}
 	}
 	json.NewEncoder(w).Encode(response)
