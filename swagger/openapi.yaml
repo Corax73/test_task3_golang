@@ -80,6 +80,47 @@ paths:
           description: Invalid input
         "422":
           description: Validation exception
+  /users/{id}:
+    put:
+      tags:
+        - users
+      summary: update user
+      description: update user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 3
+          description: user id
+      requestBody:
+        description: update user
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                email:
+                  type: string
+                  example: 1@123test-updated.com
+                name:
+                  type: string
+                  example: testUpdatedLogin1
+              type: object
+      security:
+        - basicAuth: []
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreationSuccess"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
 components:
   securitySchemes:
     basicAuth:
