@@ -40,10 +40,10 @@ paths:
     post:
       tags:
         - users
-      summary: Add a new users
+      summary: Add a new user
       description: Add a new user, return its id
       requestBody:
-        description: Create a new users
+        description: Create a new user
         required: true
         content:
           application/json:
@@ -75,7 +75,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CreationSuccess"
+                $ref: "#/components/schemas/ActionSuccess"
         "400":
           description: Invalid input
         "422":
@@ -116,7 +116,90 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CreationSuccess"
+                $ref: "#/components/schemas/ActionSuccess"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+    delete:
+      tags:
+        - users
+      summary: delete user
+      description: delete user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 9
+          description: user id
+      security:
+        - basicAuth: []
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionSuccess"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+  /roles/:
+    get:
+      tags:
+        - roles
+      summary: get roles
+      description: Returns list
+      parameters:
+        - in: query
+          required: false
+          name: sort
+          schema:
+            type: string
+            example: id--desc
+          description: sort field-direction
+        - in: query
+          required: false
+          name: filter
+          schema:
+            type: string
+            example: title--Admin
+          description: field to filter-value
+      security:
+        - basicAuth: []
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RolesList"
+        "400":
+          description: Invalid route
+    post:
+      tags:
+        - roles
+      summary: Add a new role
+      description: Add a new role, return its id
+      requestBody:
+        description: Create a new role
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DataForCreatingRole"
+      security:
+        - basicAuth: []
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionSuccess"
         "400":
           description: Invalid input
         "422":
@@ -166,7 +249,7 @@ components:
         role_id:
           type: integer
           example: 1
-    CreationSuccess:
+    ActionSuccess:
       type: object
       properties:
         Success:
@@ -178,3 +261,79 @@ components:
             id:
               type: integer
               example: 1
+    RolesList:
+      type: object
+      properties:
+        Success:
+          type: boolean
+          example: true
+        Message:
+          type: array
+          items:
+            $ref: "#/components/schemas/Roles"
+        Total:
+          type: integer
+          example: 2
+    Roles:
+      type: array
+      items:
+        $ref: "#/components/schemas/Role"
+    Role:
+      type: object
+      properties:
+        abilities:
+          type: object
+          properties:
+            users:
+              $ref: "#/components/schemas/Abilities"
+            roles:
+              $ref: "#/components/schemas/Abilities"
+            checklists:
+              $ref: "#/components/schemas/Abilities"
+            checklists_items:
+              $ref: "#/components/schemas/Abilities"
+        created_at:
+          type: string
+          example: "2025-05-11T00:00:00Z"
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "Admin"
+    Abilities:
+      type: object
+      properties:
+        create: 
+          description: 1 possible, 0 not available
+          type: integer
+          example: 1
+        read:
+          description: 1 possible, 0 not available
+          type: integer
+          example: 1
+        update:
+          description: 1 possible, 0 not available
+          type: integer
+          example: 0
+        delete:
+          description: 1 possible, 0 not available
+          type: integer
+          example: 0
+    DataForCreatingRole:
+      type: object
+      properties:
+        abilities:
+          type: object
+          properties:
+            users:
+              $ref: "#/components/schemas/Abilities"
+            roles:
+              $ref: "#/components/schemas/Abilities"
+            checklists:
+              $ref: "#/components/schemas/Abilities"
+            checklists_items:
+              $ref: "#/components/schemas/Abilities"
+        title:
+          type: string
+          example: "User123"

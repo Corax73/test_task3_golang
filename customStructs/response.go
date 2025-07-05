@@ -25,7 +25,7 @@ func (listResponse *ListResponse) ToString() string {
 		customLog.Logging(err)
 	} else {
 		resp = string(jsonData)
-		resp = utils.ConcatSlice([]string{resp, "\"total\":", strconv.Itoa(listResponse.Total)})
+		resp = utils.ConcatSlice([]string{ "{\"data\":", resp, ",", "\"total\":", strconv.Itoa(listResponse.Total), "}"})
 	}
 	return resp
 }
