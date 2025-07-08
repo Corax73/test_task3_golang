@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Model struct {
@@ -56,23 +57,32 @@ func (model *Model) Save() map[string]string {
 		for _, val := range fields {
 			if value, ok := model.Fields[val]; ok {
 				if fieldType, ok := model.FieldTypes[val]; ok {
-					switch fieldType {
-					case "bool":
-						boolValue, err := strconv.ParseBool(value)
+					if val == "created_at" {
+						t, err := time.Parse(time.RFC3339, value)
 						if err != nil {
 							customLog.Logging(err)
 						} else {
-							valuesToDb[i] = boolValue
+							valuesToDb[i] = t
 						}
-					case "int":
-						intValue, err := strconv.Atoi(value)
-						if err != nil {
-							customLog.Logging(err)
-						} else {
-							valuesToDb[i] = intValue
+					} else {
+						switch fieldType {
+						case "bool":
+							boolValue, err := strconv.ParseBool(value)
+							if err != nil {
+								customLog.Logging(err)
+							} else {
+								valuesToDb[i] = boolValue
+							}
+						case "int":
+							intValue, err := strconv.Atoi(value)
+							if err != nil {
+								customLog.Logging(err)
+							} else {
+								valuesToDb[i] = intValue
+							}
+						default:
+							valuesToDb[i] = value
 						}
-					default:
-						valuesToDb[i] = value
 					}
 					valPlaceholdersSlice = append(valPlaceholdersSlice, utils.ConcatSlice([]string{"$", strconv.Itoa(i + 1), ", "}))
 				}
@@ -311,9 +321,7 @@ func (model *Model) Update(fields map[string]string, id string) map[string]strin
 							valuesToDb[i] = intValue
 						}
 					default:
-						if strings.Contains(value, "'") {
-							value = strings.Replace(value, "'", "''", -1)
-						}
+						value = strings.Replace(value, "'", "''", -1)
 						valuesToDb[i] = value
 					}
 					valPlaceholdersSlice = append(valPlaceholdersSlice, utils.ConcatSlice([]string{"$", strconv.Itoa(i + 1), ", "}))

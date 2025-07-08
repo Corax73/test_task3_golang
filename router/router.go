@@ -468,7 +468,7 @@ func (router *Router) createChecklist(w http.ResponseWriter, r *http.Request) {
 				"id":         "",
 				"user_id":    validatedData.Data.UserId,
 				"title":      validatedData.Data.Title,
-				"created_at": "",
+				"created_at": time.Now().Format(time.RFC3339),
 			})
 			if id, ok := result["id"]; !ok {
 				response.Message["error"] = "Error.Try again"

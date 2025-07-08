@@ -204,6 +204,69 @@ paths:
           description: Invalid input
         "422":
           description: Validation exception
+  /roles/{id}:
+    delete:
+      tags:
+        - roles
+      summary: delete role
+      description: delete role
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 9
+          description: role id
+      security:
+        - basicAuth: []
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionSuccess"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+  /checklists/:
+    post:
+      tags:
+        - checklists
+      summary: Add a new checklist
+      description: Add a new checklist, return its id
+      requestBody:
+        description: Create a new checklist
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - "user_id"
+                - "title"
+              properties:
+                user_id:
+                  description: user_id
+                  example: 3
+                  type: integer
+                title:
+                  type: string
+                  example: "new task sheet"
+      security:
+        - basicAuth: []
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionSuccess"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
 components:
   securitySchemes:
     basicAuth:

@@ -20,6 +20,7 @@ func (user *User) Init() *User {
 		"email":               "string",
 		"password":            "string",
 		"checklists_quantity": "int",
+		"created_at":          "string",
 	}
 	model.GuardedFields = []string{"password"}
 	return &User{&model}

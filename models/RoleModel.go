@@ -8,6 +8,6 @@ func (role *Role) Init() *Role {
 	model := Model{}
 	model.SetTable("roles")
 	model.Fields = map[string]string{"id": "", "title": "", "abilities": "", "created_at": ""}
-	model.FieldTypes = map[string]string{"id": "int", "title": "string", "abilities": "string"}
+	model.FieldTypes = map[string]string{"id": "int", "title": "string", "abilities": "string", "created_at": "string"}
 	return &Role{&model}
 }
