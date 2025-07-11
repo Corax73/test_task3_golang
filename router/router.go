@@ -464,18 +464,23 @@ func (router *Router) createChecklist(w http.ResponseWriter, r *http.Request) {
 		validatedData := validations.ChecklistCreateRequestValidating(request)
 		if validatedData.Success {
 			checklistModel := (&models.Checklist{}).Init()
-			result := checklistModel.Create(map[string]string{
-				"id":         "",
-				"user_id":    validatedData.Data.UserId,
-				"title":      validatedData.Data.Title,
-				"created_at": time.Now().Format(time.RFC3339),
-			})
-			if id, ok := result["id"]; !ok {
-				response.Message["error"] = "Error.Try again"
+			if checklistModel.CanCreating(validatedData.Data.UserId) {
+				result := checklistModel.Create(map[string]string{
+					"id":         "",
+					"user_id":    validatedData.Data.UserId,
+					"title":      validatedData.Data.Title,
+					"created_at": time.Now().Format(time.RFC3339),
+				})
+				if id, ok := result["id"]; !ok {
+					response.Message["error"] = "Error.Try again"
+				} else {
+					router.customRedis.RemoveModelKeys(checklistModel.Table())
+					response.Success = true
+					response.Message["id"] = id
+				}
 			} else {
-				router.customRedis.RemoveModelKeys(checklistModel.Table())
-				response.Success = true
-				response.Message["id"] = id
+				response.Message = map[string]any{"error": "check the number of checklists the user has"}
+				w.WriteHeader(http.StatusUnprocessableEntity)
 			}
 		} else {
 			response.Message = validatedData.ToMap()
