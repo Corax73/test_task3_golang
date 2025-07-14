@@ -14,8 +14,8 @@ type SimpleResponse struct {
 
 type ListResponse struct {
 	Success bool
-	Message []map[string]any
-	Total   int
+	Message []map[string]any `json:"data"`
+	Total   int `json:"total"`
 }
 
 func (listResponse *ListResponse) ToString() string {

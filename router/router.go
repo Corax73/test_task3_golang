@@ -246,12 +246,9 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 				}
 			} else {
 				if val != "" {
-					jsonMap := make([]map[string]any, 100)
-					err := json.Unmarshal([]byte(val), &jsonMap)
+					err := json.Unmarshal([]byte(val), &response)
 					if err != nil {
 						customLog.Logging(err)
-					} else {
-						response.Message = jsonMap
 					}
 				} else {
 					response.Message, response.Total = userModel.GetList(validatedData.ToMap())
@@ -267,15 +264,40 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		} else {
-			response.Message, response.Total = userModel.GetList(make(map[string]string, 1))
-			err := router.customRedis.RedisClient.Set(
+			val, err := router.customRedis.RedisClient.Get(
 				router.customRedis.Ctx,
 				validatedData.GetAsKey(userModel.Table()),
-				response.ToString(),
-				0,
-			).Err()
+			).Result()
 			if err != nil {
 				customLog.Logging(err)
+				response.Message, response.Total = userModel.GetList(validatedData.ToMap())
+				err := router.customRedis.RedisClient.Set(
+					router.customRedis.Ctx,
+					validatedData.GetAsKey(userModel.Table()),
+					response.ToString(),
+					0,
+				).Err()
+				if err != nil {
+					customLog.Logging(err)
+				}
+			} else {
+				if val != "" {
+					err := json.Unmarshal([]byte(val), &response)
+					if err != nil {
+						customLog.Logging(err)
+					}
+				} else {
+					response.Message, response.Total = userModel.GetList(validatedData.ToMap())
+					err := router.customRedis.RedisClient.Set(
+						router.customRedis.Ctx,
+						validatedData.GetAsKey(userModel.Table()),
+						response.ToString(),
+						0,
+					).Err()
+					if err != nil {
+						customLog.Logging(err)
+					}
+				}
 			}
 		}
 		if len(response.Message) > 0 {
@@ -381,12 +403,9 @@ func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
 				}
 			} else {
 				if val != "" {
-					jsonMap := make([]map[string]any, 100)
-					err := json.Unmarshal([]byte(val), &jsonMap)
+					err := json.Unmarshal([]byte(val), &response)
 					if err != nil {
 						customLog.Logging(err)
-					} else {
-						response.Message = jsonMap
 					}
 				} else {
 					response.Message, response.Total = roleModel.GetList(validatedData.ToMap())
@@ -402,15 +421,40 @@ func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		} else {
-			response.Message, response.Total = roleModel.GetList(make(map[string]string, 1))
-			err := router.customRedis.RedisClient.Set(
+			val, err := router.customRedis.RedisClient.Get(
 				router.customRedis.Ctx,
 				validatedData.GetAsKey(roleModel.Table()),
-				response.ToString(),
-				0,
-			).Err()
+			).Result()
 			if err != nil {
 				customLog.Logging(err)
+				response.Message, response.Total = roleModel.GetList(validatedData.ToMap())
+				err := router.customRedis.RedisClient.Set(
+					router.customRedis.Ctx,
+					validatedData.GetAsKey(roleModel.Table()),
+					response.ToString(),
+					0,
+				).Err()
+				if err != nil {
+					customLog.Logging(err)
+				}
+			} else {
+				if val != "" {
+					err := json.Unmarshal([]byte(val), &response)
+					if err != nil {
+						customLog.Logging(err)
+					}
+				} else {
+					response.Message, response.Total = roleModel.GetList(validatedData.ToMap())
+					err := router.customRedis.RedisClient.Set(
+						router.customRedis.Ctx,
+						validatedData.GetAsKey(roleModel.Table()),
+						response.ToString(),
+						0,
+					).Err()
+					if err != nil {
+						customLog.Logging(err)
+					}
+				}
 			}
 		}
 		if len(response.Message) > 0 {
@@ -521,12 +565,9 @@ func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 				}
 			} else {
 				if val != "" {
-					jsonMap := make([]map[string]any, 100)
-					err := json.Unmarshal([]byte(val), &jsonMap)
+					err := json.Unmarshal([]byte(val), &response)
 					if err != nil {
 						customLog.Logging(err)
-					} else {
-						response.Message = jsonMap
 					}
 				} else {
 					response.Message, response.Total = checklistModel.GetList(validatedData.ToMap())
@@ -542,15 +583,40 @@ func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		} else {
-			response.Message, response.Total = checklistModel.GetList(make(map[string]string, 1))
-			err := router.customRedis.RedisClient.Set(
+			val, err := router.customRedis.RedisClient.Get(
 				router.customRedis.Ctx,
 				validatedData.GetAsKey(checklistModel.Table()),
-				response.ToString(),
-				0,
-			).Err()
+			).Result()
 			if err != nil {
 				customLog.Logging(err)
+				response.Message, response.Total = checklistModel.GetList(validatedData.ToMap())
+				err := router.customRedis.RedisClient.Set(
+					router.customRedis.Ctx,
+					validatedData.GetAsKey(checklistModel.Table()),
+					response.ToString(),
+					0,
+				).Err()
+				if err != nil {
+					customLog.Logging(err)
+				}
+			} else {
+				if val != "" {
+					err := json.Unmarshal([]byte(val), &response)
+					if err != nil {
+						customLog.Logging(err)
+					}
+				} else {
+					response.Message, response.Total = checklistModel.GetList(validatedData.ToMap())
+					err := router.customRedis.RedisClient.Set(
+						router.customRedis.Ctx,
+						validatedData.GetAsKey(checklistModel.Table()),
+						response.ToString(),
+						0,
+					).Err()
+					if err != nil {
+						customLog.Logging(err)
+					}
+				}
 			}
 		}
 		if len(response.Message) > 0 {
@@ -688,12 +754,9 @@ func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request)
 				}
 			} else {
 				if val != "" {
-					jsonMap := make([]map[string]any, 100)
-					err := json.Unmarshal([]byte(val), &jsonMap)
+					err := json.Unmarshal([]byte(val), &response)
 					if err != nil {
 						customLog.Logging(err)
-					} else {
-						response.Message = jsonMap
 					}
 				} else {
 					response.Message, response.Total = checklistItemModel.GetList(validatedData.ToMap())
@@ -709,15 +772,40 @@ func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request)
 				}
 			}
 		} else {
-			response.Message, response.Total = checklistItemModel.GetList(make(map[string]string, 1))
-			err := router.customRedis.RedisClient.Set(
+			val, err := router.customRedis.RedisClient.Get(
 				router.customRedis.Ctx,
 				validatedData.GetAsKey(checklistItemModel.Table()),
-				response.ToString(),
-				0,
-			).Err()
+			).Result()
 			if err != nil {
 				customLog.Logging(err)
+				response.Message, response.Total = checklistItemModel.GetList(validatedData.ToMap())
+				err := router.customRedis.RedisClient.Set(
+					router.customRedis.Ctx,
+					validatedData.GetAsKey(checklistItemModel.Table()),
+					response.ToString(),
+					0,
+				).Err()
+				if err != nil {
+					customLog.Logging(err)
+				}
+			} else {
+				if val != "" {
+					err := json.Unmarshal([]byte(val), &response)
+					if err != nil {
+						customLog.Logging(err)
+					}
+				} else {
+					response.Message, response.Total = checklistItemModel.GetList(validatedData.ToMap())
+					err := router.customRedis.RedisClient.Set(
+						router.customRedis.Ctx,
+						validatedData.GetAsKey(checklistItemModel.Table()),
+						response.ToString(),
+						0,
+					).Err()
+					if err != nil {
+						customLog.Logging(err)
+					}
+				}
 			}
 		}
 		if len(response.Message) > 0 {

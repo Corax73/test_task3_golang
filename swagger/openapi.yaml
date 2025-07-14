@@ -267,6 +267,37 @@ paths:
           description: Invalid input
         "422":
           description: Validation exception
+    get:
+      tags:
+        - checklists
+      summary: get checklists
+      description: Returns list
+      parameters:
+        - in: query
+          required: false
+          name: sort
+          schema:
+            type: string
+            example: id--desc
+          description: sort field-direction
+        - in: query
+          required: false
+          name: filter
+          schema:
+            type: string
+            example: title--test1
+          description: field to filter-value
+      security:
+        - basicAuth: []
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChecklistsList"
+        "400":
+          description: Invalid route
 components:
   securitySchemes:
     basicAuth:
@@ -400,3 +431,35 @@ components:
         title:
           type: string
           example: "User123"
+    ChecklistsList:
+      type: object
+      properties:
+        Success:
+          type: boolean
+          example: true
+        Message:
+          type: array
+          items:
+            $ref: "#/components/schemas/Checklists"
+        Total:
+          type: integer
+          example: 2
+    Checklists:
+      type: array
+      items:
+        $ref: "#/components/schemas/Checklist"
+    Checklist:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          example: 1
+        created_at:
+          type: string
+          example: "2025-05-11T00:00:00Z"
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "new task sheet"
