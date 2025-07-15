@@ -298,6 +298,73 @@ paths:
                 $ref: "#/components/schemas/ChecklistsList"
         "400":
           description: Invalid route
+  /checklists/{id}:
+    put:
+      tags:
+        - checklists
+      summary: update checklist
+      description: update checklist
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 3
+          description: checklist id
+      requestBody:
+        description: update checklist
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                title:
+                  type: string
+                  example: test_update4
+                user_id:
+                  type: integer
+                  example: 1
+              type: object
+      security:
+        - basicAuth: []
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionSuccess"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+    delete:
+      tags:
+        - checklists
+      summary: delete checklist
+      description: delete checklist
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 9
+          description: checklist id
+      security:
+        - basicAuth: []
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionSuccess"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
 components:
   securitySchemes:
     basicAuth:
