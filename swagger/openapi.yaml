@@ -365,6 +365,80 @@ paths:
           description: Invalid input
         "422":
           description: Validation exception
+  /checklists/items/:
+    post:
+      tags:
+        - checklists items
+      summary: Add a new checklist item
+      description: Add a new checklist item, return its id
+      requestBody:
+        description: Create a new checklist item
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - "checklist_id"
+                - "is_completed"
+                - "description"
+              properties:
+                checklist_id:
+                  description: checklist_id
+                  example: 3
+                  type: integer
+                is_completed:
+                  description: task completion mark
+                  example: 1
+                  type: boolean
+                description:
+                  description: job description
+                  type: string
+                  example: "learn verb tenses"
+      security:
+        - basicAuth: []
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionSuccess"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+  /checklists/{id}/items/:
+    get:
+      tags:
+        - checklist items
+      summary: get checklist items
+      description: Returns list
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 3
+          description: checklist id
+        - in: query
+          required: false
+          name: sort
+          schema:
+            type: string
+            example: id--desc
+          description: sort field-direction
+      security:
+        - basicAuth: []
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChecklistItemsList"
+        "400":
+          description: Invalid route
 components:
   securitySchemes:
     basicAuth:
@@ -530,3 +604,35 @@ components:
         title:
           type: string
           example: "new task sheet"
+    ChecklistItemsList:
+      type: object
+      properties:
+        Success:
+          type: boolean
+          example: true
+        Message:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChecklistItems"
+        Total:
+          type: integer
+          example: 2
+    ChecklistItems:
+      type: array
+      items:
+        $ref: "#/components/schemas/ChecklistItem"
+    ChecklistItem:
+      type: object
+      properties:
+        checklist_id:
+          description: checklist_id
+          example: 3
+          type: integer
+        is_completed:
+          description: task completion mark
+          example: 1
+          type: boolean
+        description:
+          description: job description
+          type: string
+          example: "learn verb tenses"
