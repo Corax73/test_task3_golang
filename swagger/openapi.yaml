@@ -368,7 +368,7 @@ paths:
   /checklists/items/:
     post:
       tags:
-        - checklists items
+        - checklist items
       summary: Add a new checklist item
       description: Add a new checklist item, return its id
       requestBody:
@@ -439,6 +439,76 @@ paths:
                 $ref: "#/components/schemas/ChecklistItemsList"
         "400":
           description: Invalid route
+  /checklists/items/{id}:
+    put:
+      tags:
+        - checklist items
+      summary: update checklist item
+      description: update checklist item
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 3
+          description: checklist item id
+      requestBody:
+        description: update checklist item
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                title:
+                  type: string
+                  example: test_update4
+                checklist_id:
+                  type: integer
+                  example: 3
+                is_completed:
+                  type: boolean
+                  example: 1
+              type: object
+      security:
+        - basicAuth: []
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionSuccess"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+    delete:
+      tags:
+        - checklist items
+      summary: delete checklist item
+      description: delete checklist item
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 8
+          description: checklist item id
+      security:
+        - basicAuth: []
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionSuccess"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
 components:
   securitySchemes:
     basicAuth:
