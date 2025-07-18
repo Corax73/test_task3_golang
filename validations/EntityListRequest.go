@@ -62,6 +62,8 @@ func (entityValidatedData *EntityListValidatedData) GetAsKey(entityName string) 
 	return utils.ConcatSlice([]string{
 		entityName,
 		"-",
+		entityValidatedData.Data.Id,
+		"-",
 		entityValidatedData.Data.FilterBy,
 		"-",
 		entityValidatedData.Data.FilterVal,

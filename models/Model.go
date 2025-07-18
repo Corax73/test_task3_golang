@@ -121,7 +121,7 @@ func (model *Model) Save() map[string]string {
 	return response
 }
 
-func (model *Model) GetList(params map[string]string) ([]map[string]any, int) {
+func (model *Model) GetList(params map[string]string, additionalFilters map[string]string) ([]map[string]any, int) {
 	var resp []map[string]any
 	db := customDb.GetConnect()
 	defer customDb.CloseConnect(db)
@@ -149,7 +149,9 @@ func (model *Model) GetList(params map[string]string) ([]map[string]any, int) {
 		model.Table(),
 	})
 	if len(params) > 0 {
+		var hasMainFilter bool
 		if filterBy, ok := params["filterBy"]; ok && filterBy != "" {
+			hasMainFilter = true
 			queryStr = utils.ConcatSlice([]string{
 				queryStr,
 				" WHERE ",
@@ -166,6 +168,30 @@ func (model *Model) GetList(params map[string]string) ([]map[string]any, int) {
 				params["filterVal"],
 				"'",
 			})
+		}
+		if len(additionalFilters) > 0 {
+			for key, val := range additionalFilters {
+				operator := " WHERE "
+				if hasMainFilter {
+					operator = " AND "
+				}
+				queryStr = utils.ConcatSlice([]string{
+					queryStr,
+					operator,
+					key,
+					" = '",
+					val,
+					"'",
+				})
+				queryStrToTotal = utils.ConcatSlice([]string{
+					queryStrToTotal,
+					operator,
+					key,
+					" = '",
+					val,
+					"'",
+				})
+			}
 		}
 		if order, ok := params["order"]; ok && order != "" {
 			queryStr = utils.ConcatSlice([]string{
