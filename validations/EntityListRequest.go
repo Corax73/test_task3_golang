@@ -1,13 +1,17 @@
 package validations
 
 import (
+	"checklist/customLog"
 	"checklist/customStructs"
 	"checklist/utils"
+	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 type EntityListValidatedFields struct {
 	Id, FilterBy, FilterVal, OrderBy, Order, Limit, Offset string
+	Filters                                                []map[string]string
 }
 type EntityListValidatedData struct {
 	Success bool
@@ -55,10 +59,32 @@ func EntityListRequestValidating(request customStructs.Request) EntityListValida
 		response.Success = true
 		response.Data.Offset = fmt.Sprintf("%s", offset)
 	}
+	if len(request.Filters) > 0 {
+		response.Data.Filters = request.Filters
+	}
 	return response
 }
 
 func (entityValidatedData *EntityListValidatedData) GetAsKey(entityName string) string {
+	jsonString, err := json.Marshal(entityValidatedData.Data.Filters)
+	if err != nil {
+		customLog.Logging(err)
+	}
+	filterKey := strings.ReplaceAll(
+		strings.ReplaceAll(
+			strings.ReplaceAll(
+				strings.ReplaceAll(
+					strings.ReplaceAll(
+						strings.ReplaceAll(
+							strings.ReplaceAll(
+								string(jsonString), "[", "-",
+							),
+							"\"", "-",
+						), ",", "-",
+					), "{", "-"),
+				":", "-"),
+			"}", "-"),
+		"]", "-")
 	return utils.ConcatSlice([]string{
 		entityName,
 		"-",
@@ -70,13 +96,12 @@ func (entityValidatedData *EntityListValidatedData) GetAsKey(entityName string) 
 		"-",
 		entityValidatedData.Data.OrderBy,
 		"-",
-		"-",
 		entityValidatedData.Data.Order,
-		"-",
 		"-",
 		entityValidatedData.Data.Limit,
 		"-",
-		"-",
 		entityValidatedData.Data.Offset,
+		"-",
+		filterKey,
 	})
 }

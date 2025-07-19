@@ -91,14 +91,20 @@ func (router *Router) initProcess(w http.ResponseWriter, r *http.Request, getPos
 			}
 			filter := r.URL.Query().Get("filter")
 			if filter != "" {
-				splits := strings.Split(filter, "--")
+				/*splits := strings.Split(filter, "--")
 				if len(splits) > 1 {
 					requestField, requestValue := splits[0], splits[1]
 					if requestValue != "" {
 						vars["filterBy"] = requestField
 						vars["filterVal"] = requestValue
 					}
+				}*/
+				var jsonMap []map[string]string
+				err := json.Unmarshal([]byte(filter), &jsonMap)
+				if err != nil {
+					customLog.Logging(err)
 				}
+				resp.Filters = jsonMap
 			}
 			limit := r.URL.Query().Get("limit")
 			if limit != "" {
@@ -227,7 +233,6 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 		}
 		validatedData := validations.EntityListRequestValidating(request)
 		userModel := (&models.User{}).Init()
-		additionalFilters := make(map[string]string, 1)
 		if validatedData.Success {
 			val, err := router.customRedis.RedisClient.Get(
 				router.customRedis.Ctx,
@@ -235,7 +240,7 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 			).Result()
 			if err != nil {
 				customLog.Logging(err)
-				response.Message, response.Total = userModel.GetList(validatedData.ToMap(), additionalFilters)
+				response.Message, response.Total = userModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 				err := router.customRedis.RedisClient.Set(
 					router.customRedis.Ctx,
 					validatedData.GetAsKey(userModel.Table()),
@@ -252,7 +257,7 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 						customLog.Logging(err)
 					}
 				} else {
-					response.Message, response.Total = userModel.GetList(validatedData.ToMap(), additionalFilters)
+					response.Message, response.Total = userModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 					err := router.customRedis.RedisClient.Set(
 						router.customRedis.Ctx,
 						validatedData.GetAsKey(userModel.Table()),
@@ -271,7 +276,7 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 			).Result()
 			if err != nil {
 				customLog.Logging(err)
-				response.Message, response.Total = userModel.GetList(validatedData.ToMap(), additionalFilters)
+				response.Message, response.Total = userModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 				err := router.customRedis.RedisClient.Set(
 					router.customRedis.Ctx,
 					validatedData.GetAsKey(userModel.Table()),
@@ -288,7 +293,7 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 						customLog.Logging(err)
 					}
 				} else {
-					response.Message, response.Total = userModel.GetList(validatedData.ToMap(), additionalFilters)
+					response.Message, response.Total = userModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 					err := router.customRedis.RedisClient.Set(
 						router.customRedis.Ctx,
 						validatedData.GetAsKey(userModel.Table()),
@@ -385,7 +390,6 @@ func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
 		}
 		validatedData := validations.EntityListRequestValidating(request)
 		roleModel := (&models.Role{}).Init()
-		additionalFilters := make(map[string]string, 1)
 		if validatedData.Success {
 			val, err := router.customRedis.RedisClient.Get(
 				router.customRedis.Ctx,
@@ -393,7 +397,7 @@ func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
 			).Result()
 			if err != nil {
 				customLog.Logging(err)
-				response.Message, response.Total = roleModel.GetList(validatedData.ToMap(), additionalFilters)
+				response.Message, response.Total = roleModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 				err := router.customRedis.RedisClient.Set(
 					router.customRedis.Ctx,
 					validatedData.GetAsKey(roleModel.Table()),
@@ -410,7 +414,7 @@ func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
 						customLog.Logging(err)
 					}
 				} else {
-					response.Message, response.Total = roleModel.GetList(validatedData.ToMap(), additionalFilters)
+					response.Message, response.Total = roleModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 					err := router.customRedis.RedisClient.Set(
 						router.customRedis.Ctx,
 						validatedData.GetAsKey(roleModel.Table()),
@@ -429,7 +433,7 @@ func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
 			).Result()
 			if err != nil {
 				customLog.Logging(err)
-				response.Message, response.Total = roleModel.GetList(validatedData.ToMap(), additionalFilters)
+				response.Message, response.Total = roleModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 				err := router.customRedis.RedisClient.Set(
 					router.customRedis.Ctx,
 					validatedData.GetAsKey(roleModel.Table()),
@@ -446,7 +450,7 @@ func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
 						customLog.Logging(err)
 					}
 				} else {
-					response.Message, response.Total = roleModel.GetList(validatedData.ToMap(), additionalFilters)
+					response.Message, response.Total = roleModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 					err := router.customRedis.RedisClient.Set(
 						router.customRedis.Ctx,
 						validatedData.GetAsKey(roleModel.Table()),
@@ -548,7 +552,6 @@ func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 		}
 		validatedData := validations.EntityListRequestValidating(request)
 		checklistModel := (&models.Checklist{}).Init()
-		additionalFilters := make(map[string]string, 1)
 		if validatedData.Success {
 			val, err := router.customRedis.RedisClient.Get(
 				router.customRedis.Ctx,
@@ -556,7 +559,7 @@ func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 			).Result()
 			if err != nil {
 				customLog.Logging(err)
-				response.Message, response.Total = checklistModel.GetList(validatedData.ToMap(), additionalFilters)
+				response.Message, response.Total = checklistModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 				err := router.customRedis.RedisClient.Set(
 					router.customRedis.Ctx,
 					validatedData.GetAsKey(checklistModel.Table()),
@@ -573,7 +576,7 @@ func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 						customLog.Logging(err)
 					}
 				} else {
-					response.Message, response.Total = checklistModel.GetList(validatedData.ToMap(), additionalFilters)
+					response.Message, response.Total = checklistModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 					err := router.customRedis.RedisClient.Set(
 						router.customRedis.Ctx,
 						validatedData.GetAsKey(checklistModel.Table()),
@@ -592,7 +595,7 @@ func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 			).Result()
 			if err != nil {
 				customLog.Logging(err)
-				response.Message, response.Total = checklistModel.GetList(validatedData.ToMap(), additionalFilters)
+				response.Message, response.Total = checklistModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 				err := router.customRedis.RedisClient.Set(
 					router.customRedis.Ctx,
 					validatedData.GetAsKey(checklistModel.Table()),
@@ -609,7 +612,7 @@ func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 						customLog.Logging(err)
 					}
 				} else {
-					response.Message, response.Total = checklistModel.GetList(validatedData.ToMap(), additionalFilters)
+					response.Message, response.Total = checklistModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 					err := router.customRedis.RedisClient.Set(
 						router.customRedis.Ctx,
 						validatedData.GetAsKey(checklistModel.Table()),
@@ -734,12 +737,9 @@ func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request)
 		}
 		validatedData := validations.EntityListRequestValidating(request)
 		checklistItemModel := (&models.ChecklistItem{}).Init()
-		additionalFilters := make(map[string]string, 1)
 		if validatedData.Success {
 			if validatedData.Data.Id != "" {
-				/*validatedData.Data.FilterBy = "checklist_id"
-				validatedData.Data.FilterVal = validatedData.Data.Id*/
-				additionalFilters = map[string]string{"checklist_id": validatedData.Data.Id}
+				validatedData.Data.Filters = append(validatedData.Data.Filters, map[string]string{"checklist_id": validatedData.Data.Id})
 			}
 			val, err := router.customRedis.RedisClient.Get(
 				router.customRedis.Ctx,
@@ -747,7 +747,7 @@ func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request)
 			).Result()
 			if err != nil {
 				customLog.Logging(err)
-				response.Message, response.Total = checklistItemModel.GetList(validatedData.ToMap(), additionalFilters)
+				response.Message, response.Total = checklistItemModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 				err := router.customRedis.RedisClient.Set(
 					router.customRedis.Ctx,
 					validatedData.GetAsKey(checklistItemModel.Table()),
@@ -764,7 +764,7 @@ func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request)
 						customLog.Logging(err)
 					}
 				} else {
-					response.Message, response.Total = checklistItemModel.GetList(validatedData.ToMap(), additionalFilters)
+					response.Message, response.Total = checklistItemModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 					err := router.customRedis.RedisClient.Set(
 						router.customRedis.Ctx,
 						validatedData.GetAsKey(checklistItemModel.Table()),
@@ -783,7 +783,7 @@ func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request)
 			).Result()
 			if err != nil {
 				customLog.Logging(err)
-				response.Message, response.Total = checklistItemModel.GetList(validatedData.ToMap(), additionalFilters)
+				response.Message, response.Total = checklistItemModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 				err := router.customRedis.RedisClient.Set(
 					router.customRedis.Ctx,
 					validatedData.GetAsKey(checklistItemModel.Table()),
@@ -800,7 +800,7 @@ func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request)
 						customLog.Logging(err)
 					}
 				} else {
-					response.Message, response.Total = checklistItemModel.GetList(validatedData.ToMap(), additionalFilters)
+					response.Message, response.Total = checklistItemModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 					err := router.customRedis.RedisClient.Set(
 						router.customRedis.Ctx,
 						validatedData.GetAsKey(checklistItemModel.Table()),

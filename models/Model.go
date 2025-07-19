@@ -121,7 +121,7 @@ func (model *Model) Save() map[string]string {
 	return response
 }
 
-func (model *Model) GetList(params map[string]string, additionalFilters map[string]string) ([]map[string]any, int) {
+func (model *Model) GetList(params map[string]string, additionalFilters []map[string]string) ([]map[string]any, int) {
 	var resp []map[string]any
 	db := customDb.GetConnect()
 	defer customDb.CloseConnect(db)
@@ -170,27 +170,41 @@ func (model *Model) GetList(params map[string]string, additionalFilters map[stri
 			})
 		}
 		if len(additionalFilters) > 0 {
-			for key, val := range additionalFilters {
+			for _, filter := range additionalFilters {
 				operator := " WHERE "
 				if hasMainFilter {
 					operator = " AND "
 				}
+				ending := "'"
+				conditions := " = '"
+				if filter["conditions"] == "contains" {
+					conditions = " LIKE '%"
+					ending = "%'"
+				}
+				if filter["conditions"] == "begin" {
+					conditions = " LIKE '"
+					ending = "%'"
+				}
+				if filter["conditions"] == "end" {
+					conditions = " LIKE '%"
+				}
 				queryStr = utils.ConcatSlice([]string{
 					queryStr,
 					operator,
-					key,
-					" = '",
-					val,
-					"'",
+					filter["field"],
+					conditions,
+					filter["value"],
+					ending,
 				})
 				queryStrToTotal = utils.ConcatSlice([]string{
 					queryStrToTotal,
 					operator,
-					key,
-					" = '",
-					val,
-					"'",
+					filter["field"],
+					conditions,
+					filter["value"],
+					ending,
 				})
+				hasMainFilter = true
 			}
 		}
 		if order, ok := params["order"]; ok && order != "" {
@@ -347,7 +361,7 @@ func (model *Model) Update(fields map[string]string, id string) map[string]strin
 							valuesToDb[i] = intValue
 						}
 					default:
-						value = strings.Replace(value, "'", "''", -1)
+						value = strings.ReplaceAll(value, "'", "''")
 						valuesToDb[i] = value
 					}
 					valPlaceholdersSlice = append(valPlaceholdersSlice, utils.ConcatSlice([]string{"$", strconv.Itoa(i + 1), ", "}))

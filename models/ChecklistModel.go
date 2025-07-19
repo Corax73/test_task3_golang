@@ -25,7 +25,9 @@ func (checklist *Checklist) CanCreating(userId string) bool {
 	} else {
 		userModel := (&User{}).Init()
 		user := userModel.GetOneById(intUserId)
-		additionalFilters := make(map[string]string, 1)
+		filter := make(map[string]string, 1)
+		additionalFilters := make([]map[string]string, 1)
+		additionalFilters[0] = filter
 		_, total := checklist.GetList(map[string]string{"filterBy": "user_id", "filterVal": userId}, additionalFilters)
 		checklistsQuantity := user.Message["checklists_quantity"].(int64)
 		if checklistsQuantity > int64(total) {
