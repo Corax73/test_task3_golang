@@ -91,14 +91,6 @@ func (router *Router) initProcess(w http.ResponseWriter, r *http.Request, getPos
 			}
 			filter := r.URL.Query().Get("filter")
 			if filter != "" {
-				/*splits := strings.Split(filter, "--")
-				if len(splits) > 1 {
-					requestField, requestValue := splits[0], splits[1]
-					if requestValue != "" {
-						vars["filterBy"] = requestField
-						vars["filterVal"] = requestValue
-					}
-				}*/
 				var jsonMap []map[string]string
 				err := json.Unmarshal([]byte(filter), &jsonMap)
 				if err != nil {
@@ -739,7 +731,10 @@ func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request)
 		checklistItemModel := (&models.ChecklistItem{}).Init()
 		if validatedData.Success {
 			if validatedData.Data.Id != "" {
-				validatedData.Data.Filters = append(validatedData.Data.Filters, map[string]string{"checklist_id": validatedData.Data.Id})
+				validatedData.Data.Filters = append(
+					validatedData.Data.Filters,
+					map[string]string{"field": "checklist_id", "value": validatedData.Data.Id},
+				)
 			}
 			val, err := router.customRedis.RedisClient.Get(
 				router.customRedis.Ctx,
