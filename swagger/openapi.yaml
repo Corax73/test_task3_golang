@@ -21,10 +21,11 @@ paths:
           description: sort field-direction
         - in: query
           required: false
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserFiltersExample"
           name: filter
-          schema:
-            type: string
-            example: login--test1
           description: field to filter-value
       security:
         - basicAuth: []
@@ -609,7 +610,7 @@ components:
     Abilities:
       type: object
       properties:
-        create: 
+        create:
           description: 1 possible, 0 not available
           type: integer
           example: 1
@@ -706,3 +707,22 @@ components:
           description: job description
           type: string
           example: "learn verb tenses"
+    UserFiltersExample:
+      type: array
+      items:
+        $ref: "#/components/schemas/UserFilterExample"
+    UserFilterExample:
+      type: object
+      properties:
+        field:
+          description: field name
+          type: string
+          example: "login"
+        conditions:
+          description: defines the type of string search. The default is a equals. Or options at the `begin`, at the `end`, `contains`
+          type: string
+          example: "contains"
+        value:
+          description: search value
+          type: string
+          example: "test"
