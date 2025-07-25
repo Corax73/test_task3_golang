@@ -11,7 +11,7 @@ import (
 
 type EntityListValidatedFields struct {
 	Id, FilterBy, FilterVal, OrderBy, Order, Limit, Offset string
-	Filters                                                []map[string]string
+	Filters                                                []map[string]any
 }
 type EntityListValidatedData struct {
 	Success bool

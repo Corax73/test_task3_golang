@@ -26,7 +26,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserFiltersExample"
           name: filter
-          description: field to filter-value
+          description: array of filter objects
       security:
         - basicAuth: []
       responses:
@@ -165,10 +165,11 @@ paths:
         - in: query
           required: false
           name: filter
-          schema:
-            type: string
-            example: title--Admin
-          description: field to filter-value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoleFiltersExample"
+          description: array of filter objects
       security:
         - basicAuth: []
       responses:
@@ -284,10 +285,11 @@ paths:
         - in: query
           required: false
           name: filter
-          schema:
-            type: string
-            example: title--test1
-          description: field to filter-value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChecklistFiltersExample"
+          description: array of filter objects
       security:
         - basicAuth: []
       responses:
@@ -425,10 +427,11 @@ paths:
         - in: query
           required: false
           name: sort
-          schema:
-            type: string
-            example: id--desc
-          description: sort field-direction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserFiltersExample"
+          description: array of filter objects
       security:
         - basicAuth: []
       responses:
@@ -718,6 +721,44 @@ components:
           description: field name
           type: string
           example: "login"
+        conditions:
+          description: defines the type of string search. The default is a equals. Or options at the `begin`, at the `end`, `contains`
+          type: string
+          example: "contains"
+        value:
+          description: search value
+          type: string
+          example: "test"
+    RoleFiltersExample:
+      type: array
+      items:
+        $ref: "#/components/schemas/RoleFilterExample"
+    RoleFilterExample:
+      type: object
+      properties:
+        field:
+          description: field name
+          type: string
+          example: "title"
+        conditions:
+          description: defines the type of string search. The default is a equals. Or options at the `begin`, at the `end`, `contains`
+          type: string
+          example: "contains"
+        value:
+          description: search value
+          type: string
+          example: "dmin"
+    ChecklistFiltersExample:
+      type: array
+      items:
+        $ref: "#/components/schemas/ChecklistFilterExample"
+    ChecklistFilterExample:
+      type: object
+      properties:
+        field:
+          description: field name
+          type: string
+          example: "title"
         conditions:
           description: defines the type of string search. The default is a equals. Or options at the `begin`, at the `end`, `contains`
           type: string

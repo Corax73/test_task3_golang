@@ -5,6 +5,7 @@ import (
 	"checklist/customLog"
 	"checklist/customStructs"
 	"checklist/utils"
+	"fmt"
 	"slices"
 	"strconv"
 	"strings"
@@ -121,7 +122,7 @@ func (model *Model) Save() map[string]string {
 	return response
 }
 
-func (model *Model) GetList(params map[string]string, additionalFilters []map[string]string) ([]map[string]any, int) {
+func (model *Model) GetList(params map[string]string, additionalFilters []map[string]any) ([]map[string]any, int) {
 	var resp []map[string]any
 	db := customDb.GetConnect()
 	defer customDb.CloseConnect(db)
@@ -148,6 +149,7 @@ func (model *Model) GetList(params map[string]string, additionalFilters []map[st
 		" FROM ",
 		model.Table(),
 	})
+	valuesToDb := make([]any, len(additionalFilters))
 	if len(params) > 0 {
 		var hasMainFilter bool
 		if filterBy, ok := params["filterBy"]; ok && filterBy != "" {
@@ -170,42 +172,68 @@ func (model *Model) GetList(params map[string]string, additionalFilters []map[st
 			})
 		}
 		if len(additionalFilters) > 0 {
-			for _, filter := range additionalFilters {
+			for i, filter := range additionalFilters {
 				operator := " WHERE "
 				if hasMainFilter {
 					operator = " AND "
 				}
-				ending := "'"
+				beging := ""
+				ending := ""
 				conditions := " = '"
 				if filter["conditions"] == "contains" {
-					conditions = " LIKE '%"
-					ending = "%'"
+					conditions = " LIKE "
+					beging = "%"
+					ending = "%"
 				}
 				if filter["conditions"] == "begin" {
-					conditions = " LIKE '"
-					ending = "%'"
+					conditions = " LIKE "
+					ending = "%"
 				}
 				if filter["conditions"] == "end" {
-					conditions = " LIKE '%"
+					conditions = " LIKE "
+					beging = "%"
+				}
+				if filter["value"] != nil {
+					switch filter["value"].(type) {
+					case bool:
+						valuesToDb[i] = filter["value"].(bool)
+					case int:
+						valuesToDb[i] = filter["value"].(int)
+						conditions = " = "
+					case int64:
+						valuesToDb[i] = filter["value"].(int64)
+						conditions = " = "
+					case float64:
+						valuesToDb[i] = filter["value"].(float64)
+						conditions = " = "
+					case string:
+						valuesToDb[i] = utils.ConcatSlice([]string{beging, filter["value"].(string), ending})
+					case time.Time:
+						valuesToDb[i] = filter["value"].(time.Time)
+					case []byte:
+						valuesToDb[i] = string(filter["value"].([]byte))
+					default:
+						valuesToDb[i] = filter["value"]
+					}
 				}
 				queryStr = utils.ConcatSlice([]string{
 					queryStr,
 					operator,
-					filter["field"],
+					filter["field"].(string),
 					conditions,
-					filter["value"],
-					ending,
+					utils.ConcatSlice([]string{"$", strconv.Itoa(i + 1)}),
 				})
 				queryStrToTotal = utils.ConcatSlice([]string{
 					queryStrToTotal,
 					operator,
-					filter["field"],
+					filter["field"].(string),
 					conditions,
-					filter["value"],
-					ending,
+					utils.ConcatSlice([]string{"$", strconv.Itoa(i + 1)}),
 				})
 				hasMainFilter = true
 			}
+			queryStr = strings.Trim(queryStr, ", ")
+			queryStrToTotal = strings.Trim(queryStrToTotal, ", ")
 		}
 		if order, ok := params["order"]; ok && order != "" {
 			queryStr = utils.ConcatSlice([]string{
@@ -235,8 +263,11 @@ func (model *Model) GetList(params map[string]string, additionalFilters []map[st
 		queryStrToTotal,
 		" ;",
 	})
+	fmt.Println(queryStrToTotal)
+	fmt.Println(queryStr)
+	fmt.Println(valuesToDb)
 	var total int
-	err := db.QueryRow(queryStrToTotal).Scan(&total)
+	err := db.QueryRow(queryStrToTotal, valuesToDb...).Scan(&total)
 	if err != nil {
 		customLog.Logging(err)
 	}
@@ -244,7 +275,8 @@ func (model *Model) GetList(params map[string]string, additionalFilters []map[st
 		queryStr,
 		" ;",
 	})
-	rows, err := db.Query(queryStr)
+
+	rows, err := db.Query(queryStr, valuesToDb...)
 	if err != nil {
 		customLog.Logging(err)
 	} else {

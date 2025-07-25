@@ -96,7 +96,7 @@ func (router *Router) initProcess(w http.ResponseWriter, r *http.Request, getPos
 			filter = strings.ReplaceAll(filter, "\"]", "]")
 			filter = strings.ReplaceAll(filter, " ", "")
 			if filter != "" {
-				var jsonMap []map[string]string
+				var jsonMap []map[string]any
 				err := json.Unmarshal([]byte(filter), &jsonMap)
 				if err != nil {
 					customLog.Logging(err)
@@ -738,7 +738,7 @@ func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request)
 			if validatedData.Data.Id != "" {
 				validatedData.Data.Filters = append(
 					validatedData.Data.Filters,
-					map[string]string{"field": "checklist_id", "value": validatedData.Data.Id},
+					map[string]any{"field": "checklist_id", "value": validatedData.Data.Id},
 				)
 			}
 			val, err := router.customRedis.RedisClient.Get(
