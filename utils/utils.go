@@ -201,3 +201,13 @@ func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
 }
+
+// ClearStringOfCharacters in the passed string, replaces the characters from the passed slice with an empty string.
+func ClearStringOfCharacters(str string, characters []string) string {
+	if str != "" {
+		for _, char := range characters {
+			str = strings.ReplaceAll(str, char, "")
+		}
+	}
+	return str
+}

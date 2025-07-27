@@ -90,11 +90,9 @@ func (router *Router) initProcess(w http.ResponseWriter, r *http.Request, getPos
 				}
 			}
 			filter := r.URL.Query().Get("filter")
-			filter = strings.ReplaceAll(filter, "\\n", "")
-			filter = strings.ReplaceAll(filter, "\\", "")
+			filter = utils.ClearStringOfCharacters(filter, []string{"\\n", "\\", " "})
 			filter = strings.ReplaceAll(filter, "[\"", "[")
 			filter = strings.ReplaceAll(filter, "\"]", "]")
-			filter = strings.ReplaceAll(filter, " ", "")
 			if filter != "" {
 				var jsonMap []map[string]any
 				err := json.Unmarshal([]byte(filter), &jsonMap)

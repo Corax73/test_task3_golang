@@ -5,7 +5,6 @@ import (
 	"checklist/customLog"
 	"checklist/customStructs"
 	"checklist/utils"
-	"fmt"
 	"slices"
 	"strconv"
 	"strings"
@@ -179,7 +178,7 @@ func (model *Model) GetList(params map[string]string, additionalFilters []map[st
 				}
 				beging := ""
 				ending := ""
-				conditions := " = '"
+				conditions := " = "
 				if filter["conditions"] == "contains" {
 					conditions = " LIKE "
 					beging = "%"
@@ -263,9 +262,6 @@ func (model *Model) GetList(params map[string]string, additionalFilters []map[st
 		queryStrToTotal,
 		" ;",
 	})
-	fmt.Println(queryStrToTotal)
-	fmt.Println(queryStr)
-	fmt.Println(valuesToDb)
 	var total int
 	err := db.QueryRow(queryStrToTotal, valuesToDb...).Scan(&total)
 	if err != nil {

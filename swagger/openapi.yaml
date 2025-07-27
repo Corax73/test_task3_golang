@@ -422,15 +422,22 @@ paths:
           required: true
           schema:
             type: integer
-            example: 3
+            example: 2
           description: checklist id
         - in: query
           required: false
           name: sort
+          schema:
+            type: string
+            example: id--desc
+          description: sort field-direction
+        - in: query
+          required: false
+          name: filter
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserFiltersExample"
+                $ref: "#/components/schemas/ChecklistItemFiltersExample"
           description: array of filter objects
       security:
         - basicAuth: []
@@ -767,3 +774,22 @@ components:
           description: search value
           type: string
           example: "test"
+    ChecklistItemFiltersExample:
+      type: array
+      items:
+        $ref: "#/components/schemas/ChecklistItemFilterExample"
+    ChecklistItemFilterExample:
+      type: object
+      properties:
+        field:
+          description: field name
+          type: string
+          example: "is_completed"
+        conditions:
+          description: defines the type of string search. The default is a equals. Or options at the `begin`, at the `end`, `contains`
+          type: string
+          example: "="
+        value:
+          description: search value
+          type: integer
+          example: 1
