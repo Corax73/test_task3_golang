@@ -1,16 +1,20 @@
 package models
 
 import (
+	"checklist/customDb"
 	"regexp"
 	"unicode/utf8"
+
+	simplemodels "github.com/Corax73/simpleAbstractModels"
 )
 
 type User struct {
-	*Model
+	*simplemodels.Model
 }
 
 func (user *User) Init() *User {
-	model := Model{}
+	model := simplemodels.Model{}
+	model.SetDb(customDb.GetConnect())
 	model.SetTable("users")
 	model.Fields = map[string]string{"id": "", "role_id": "", "login": "", "email": "", "password": "", "checklists_quantity": "0", "created_at": ""}
 	model.FieldTypes = map[string]string{

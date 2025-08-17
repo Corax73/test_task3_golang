@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	customStructsModels "github.com/Corax73/simpleAbstractModels/customStructs"
 	"github.com/gorilla/mux"
 )
 
@@ -146,7 +147,7 @@ func (router *Router) setUnauthorized(w http.ResponseWriter) {
 
 // createUser by post parameters creates an entity
 func (router *Router) createUser(w http.ResponseWriter, r *http.Request) {
-	var response customStructs.SimpleResponse
+	var response customStructsModels.SimpleResponse
 	request := router.initProcess(w, r, true, "users", "create")
 	if request.Auth {
 		if router.customRedis == nil {
@@ -190,7 +191,7 @@ func (router *Router) createUser(w http.ResponseWriter, r *http.Request) {
 
 // updateUser updates entity.
 func (router *Router) updateUser(w http.ResponseWriter, r *http.Request) {
-	var response customStructs.SimpleResponse
+	var response customStructsModels.SimpleResponse
 	request := router.initProcess(w, r, true, "users", "update")
 	if request.Auth {
 		if router.customRedis == nil {
@@ -220,7 +221,7 @@ func (router *Router) updateUser(w http.ResponseWriter, r *http.Request) {
 
 // getUsers returns a list of entities, can use limit and offset parameters.
 func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
-	var response customStructs.ListResponse
+	var response customStructsModels.ListResponse
 	request := router.initProcess(w, r, false, "users", "read")
 	if request.Auth {
 		if router.customRedis == nil {
@@ -235,7 +236,7 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 			).Result()
 			if err != nil {
 				customLog.Logging(err)
-				response.Message, response.Total = userModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
+				response = userModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 				err := router.customRedis.RedisClient.Set(
 					router.customRedis.Ctx,
 					validatedData.GetAsKey(userModel.Table()),
@@ -252,7 +253,7 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 						customLog.Logging(err)
 					}
 				} else {
-					response.Message, response.Total = userModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
+					response = userModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 					err := router.customRedis.RedisClient.Set(
 						router.customRedis.Ctx,
 						validatedData.GetAsKey(userModel.Table()),
@@ -271,7 +272,7 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 			).Result()
 			if err != nil {
 				customLog.Logging(err)
-				response.Message, response.Total = userModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
+				response = userModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 				err := router.customRedis.RedisClient.Set(
 					router.customRedis.Ctx,
 					validatedData.GetAsKey(userModel.Table()),
@@ -288,7 +289,7 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 						customLog.Logging(err)
 					}
 				} else {
-					response.Message, response.Total = userModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
+					response = userModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 					err := router.customRedis.RedisClient.Set(
 						router.customRedis.Ctx,
 						validatedData.GetAsKey(userModel.Table()),
@@ -314,7 +315,7 @@ func (router *Router) getUsers(w http.ResponseWriter, r *http.Request) {
 
 // deleteUser deletes an entity using the parameter `id`.
 func (router *Router) deleteUser(w http.ResponseWriter, r *http.Request) {
-	var response customStructs.SimpleResponse
+	var response customStructsModels.SimpleResponse
 	request := router.initProcess(w, r, true, "users", "delete")
 	if request.Auth {
 		if router.customRedis == nil {
@@ -342,7 +343,7 @@ func (router *Router) deleteUser(w http.ResponseWriter, r *http.Request) {
 
 // createRole by post parameters creates an entity
 func (router *Router) createRole(w http.ResponseWriter, r *http.Request) {
-	var response customStructs.SimpleResponse
+	var response customStructsModels.SimpleResponse
 	request := router.initProcess(w, r, true, "roles", "create")
 	if request.Auth {
 		if router.customRedis == nil {
@@ -377,7 +378,7 @@ func (router *Router) createRole(w http.ResponseWriter, r *http.Request) {
 
 // getRoles returns a list of entities, can use limit and offset parameters.
 func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
-	var response customStructs.ListResponse
+	var response customStructsModels.ListResponse
 	request := router.initProcess(w, r, false, "roles", "read")
 	if request.Auth {
 		if router.customRedis == nil {
@@ -392,7 +393,7 @@ func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
 			).Result()
 			if err != nil {
 				customLog.Logging(err)
-				response.Message, response.Total = roleModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
+				response = roleModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 				err := router.customRedis.RedisClient.Set(
 					router.customRedis.Ctx,
 					validatedData.GetAsKey(roleModel.Table()),
@@ -409,7 +410,7 @@ func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
 						customLog.Logging(err)
 					}
 				} else {
-					response.Message, response.Total = roleModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
+					response = roleModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 					err := router.customRedis.RedisClient.Set(
 						router.customRedis.Ctx,
 						validatedData.GetAsKey(roleModel.Table()),
@@ -428,7 +429,7 @@ func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
 			).Result()
 			if err != nil {
 				customLog.Logging(err)
-				response.Message, response.Total = roleModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
+				response = roleModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 				err := router.customRedis.RedisClient.Set(
 					router.customRedis.Ctx,
 					validatedData.GetAsKey(roleModel.Table()),
@@ -445,7 +446,7 @@ func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
 						customLog.Logging(err)
 					}
 				} else {
-					response.Message, response.Total = roleModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
+					response = roleModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 					err := router.customRedis.RedisClient.Set(
 						router.customRedis.Ctx,
 						validatedData.GetAsKey(roleModel.Table()),
@@ -471,7 +472,7 @@ func (router *Router) getRoles(w http.ResponseWriter, r *http.Request) {
 
 // deleteRole deletes an entity using the parameter `id`.
 func (router *Router) deleteRole(w http.ResponseWriter, r *http.Request) {
-	var response customStructs.SimpleResponse
+	var response customStructsModels.SimpleResponse
 	request := router.initProcess(w, r, true, "roles", "delete")
 	if request.Auth {
 		if router.customRedis == nil {
@@ -499,7 +500,7 @@ func (router *Router) deleteRole(w http.ResponseWriter, r *http.Request) {
 
 // createChecklist by post parameters creates an entity
 func (router *Router) createChecklist(w http.ResponseWriter, r *http.Request) {
-	var response customStructs.SimpleResponse
+	var response customStructsModels.SimpleResponse
 	request := router.initProcess(w, r, true, "checklists", "create")
 	if request.Auth {
 		if router.customRedis == nil {
@@ -539,7 +540,7 @@ func (router *Router) createChecklist(w http.ResponseWriter, r *http.Request) {
 
 // getChecklists returns a list of entities, can use limit and offset parameters.
 func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
-	var response customStructs.ListResponse
+	var response customStructsModels.ListResponse
 	request := router.initProcess(w, r, false, "checklists", "read")
 	if request.Auth {
 		if router.customRedis == nil {
@@ -554,7 +555,7 @@ func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 			).Result()
 			if err != nil {
 				customLog.Logging(err)
-				response.Message, response.Total = checklistModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
+				response = checklistModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 				err := router.customRedis.RedisClient.Set(
 					router.customRedis.Ctx,
 					validatedData.GetAsKey(checklistModel.Table()),
@@ -571,7 +572,7 @@ func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 						customLog.Logging(err)
 					}
 				} else {
-					response.Message, response.Total = checklistModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
+					response = checklistModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 					err := router.customRedis.RedisClient.Set(
 						router.customRedis.Ctx,
 						validatedData.GetAsKey(checklistModel.Table()),
@@ -590,7 +591,7 @@ func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 			).Result()
 			if err != nil {
 				customLog.Logging(err)
-				response.Message, response.Total = checklistModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
+				response = checklistModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 				err := router.customRedis.RedisClient.Set(
 					router.customRedis.Ctx,
 					validatedData.GetAsKey(checklistModel.Table()),
@@ -607,7 +608,7 @@ func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 						customLog.Logging(err)
 					}
 				} else {
-					response.Message, response.Total = checklistModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
+					response = checklistModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 					err := router.customRedis.RedisClient.Set(
 						router.customRedis.Ctx,
 						validatedData.GetAsKey(checklistModel.Table()),
@@ -633,7 +634,7 @@ func (router *Router) getChecklists(w http.ResponseWriter, r *http.Request) {
 
 // updateChecklist updates entity.
 func (router *Router) updateChecklist(w http.ResponseWriter, r *http.Request) {
-	var response customStructs.SimpleResponse
+	var response customStructsModels.SimpleResponse
 	request := router.initProcess(w, r, true, "checklists", "update")
 	if request.Auth {
 		if router.customRedis == nil {
@@ -660,7 +661,7 @@ func (router *Router) updateChecklist(w http.ResponseWriter, r *http.Request) {
 
 // deleteChecklist deletes an entity using the parameter `id`.
 func (router *Router) deleteChecklist(w http.ResponseWriter, r *http.Request) {
-	var response customStructs.SimpleResponse
+	var response customStructsModels.SimpleResponse
 	request := router.initProcess(w, r, true, "checklists", "delete")
 	if request.Auth {
 		if router.customRedis == nil {
@@ -688,7 +689,7 @@ func (router *Router) deleteChecklist(w http.ResponseWriter, r *http.Request) {
 
 // createChecklistItems by post parameters creates an entity
 func (router *Router) createChecklistItems(w http.ResponseWriter, r *http.Request) {
-	var response customStructs.SimpleResponse
+	var response customStructsModels.SimpleResponse
 	request := router.initProcess(w, r, true, "checklist_items", "create")
 	if request.Auth {
 		if router.customRedis == nil {
@@ -724,7 +725,7 @@ func (router *Router) createChecklistItems(w http.ResponseWriter, r *http.Reques
 
 // getChecklistsItems returns a list of entities, can use limit and offset parameters.
 func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request) {
-	var response customStructs.ListResponse
+	var response customStructsModels.ListResponse
 	request := router.initProcess(w, r, false, "checklist_items", "read")
 	if request.Auth {
 		if router.customRedis == nil {
@@ -745,7 +746,7 @@ func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request)
 			).Result()
 			if err != nil {
 				customLog.Logging(err)
-				response.Message, response.Total = checklistItemModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
+				response = checklistItemModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 				err := router.customRedis.RedisClient.Set(
 					router.customRedis.Ctx,
 					validatedData.GetAsKey(checklistItemModel.Table()),
@@ -762,7 +763,7 @@ func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request)
 						customLog.Logging(err)
 					}
 				} else {
-					response.Message, response.Total = checklistItemModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
+					response = checklistItemModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 					err := router.customRedis.RedisClient.Set(
 						router.customRedis.Ctx,
 						validatedData.GetAsKey(checklistItemModel.Table()),
@@ -781,7 +782,7 @@ func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request)
 			).Result()
 			if err != nil {
 				customLog.Logging(err)
-				response.Message, response.Total = checklistItemModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
+				response = checklistItemModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 				err := router.customRedis.RedisClient.Set(
 					router.customRedis.Ctx,
 					validatedData.GetAsKey(checklistItemModel.Table()),
@@ -798,7 +799,7 @@ func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request)
 						customLog.Logging(err)
 					}
 				} else {
-					response.Message, response.Total = checklistItemModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
+					response = checklistItemModel.GetList(validatedData.ToMap(), validatedData.Data.Filters)
 					err := router.customRedis.RedisClient.Set(
 						router.customRedis.Ctx,
 						validatedData.GetAsKey(checklistItemModel.Table()),
@@ -824,7 +825,7 @@ func (router *Router) getChecklistsItems(w http.ResponseWriter, r *http.Request)
 
 // deleteChecklistItem deletes an entity using the parameter `id`.
 func (router *Router) deleteChecklistItem(w http.ResponseWriter, r *http.Request) {
-	var response customStructs.SimpleResponse
+	var response customStructsModels.SimpleResponse
 	request := router.initProcess(w, r, true, "checklist_items", "delete")
 	if request.Auth {
 		if router.customRedis == nil {
@@ -852,7 +853,7 @@ func (router *Router) deleteChecklistItem(w http.ResponseWriter, r *http.Request
 
 // updateChecklistItem updates entity.
 func (router *Router) updateChecklistItem(w http.ResponseWriter, r *http.Request) {
-	var response customStructs.SimpleResponse
+	var response customStructsModels.SimpleResponse
 	request := router.initProcess(w, r, true, "checklist_items", "update")
 	if request.Auth {
 		if router.customRedis == nil {

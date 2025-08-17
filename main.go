@@ -4,12 +4,12 @@ import (
 	"checklist/customDb"
 	"checklist/customLog"
 	"checklist/router"
-	"checklist/utils"
 	"fmt"
 	"net/http"
 	"strings"
 	"sync"
 
+	goutils "github.com/Corax73/goUtils"
 	"github.com/savioxavier/termlink"
 )
 
@@ -26,9 +26,9 @@ func main() {
 	errChan := make(chan error, 1)
 	defer close(errChan)
 	mainPort := ":8080"
-	envData := utils.GetConfFromEnvFile("")
+	envData := goutils.GetConfFromEnvFile("")
 	if val, ok := envData["MAIN_PORT"]; ok {
-		mainPort = utils.ConcatSlice([]string{":", val})
+		mainPort = goutils.ConcatSlice([]string{":", val})
 	}
 	defer wg.Wait()
 	wg.Add(1)
@@ -48,8 +48,8 @@ func main() {
 				if !invitationPrinted {
 					fmt.Println(strings.Join([]string{"started ",
 						termlink.Link(
-							utils.ConcatSlice([]string{"http://localhost", mainPort}),
-							utils.ConcatSlice([]string{"http://localhost", mainPort}),
+							goutils.ConcatSlice([]string{"http://localhost", mainPort}),
+							goutils.ConcatSlice([]string{"http://localhost", mainPort}),
 						)},
 						" ",
 					))

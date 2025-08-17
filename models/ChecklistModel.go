@@ -1,16 +1,20 @@
 package models
 
 import (
+	"checklist/customDb"
 	"checklist/customLog"
 	"strconv"
+
+	simplemodels "github.com/Corax73/simpleAbstractModels"
 )
 
 type Checklist struct {
-	*Model
+	*simplemodels.Model
 }
 
 func (checklist *Checklist) Init() *Checklist {
-	model := Model{}
+	model := simplemodels.Model{}
+	model.SetDb(customDb.GetConnect())
 	model.SetTable("checklists")
 	model.Fields = map[string]string{"id": "", "user_id": "", "title": "", "created_at": ""}
 	model.FieldTypes = map[string]string{"id": "int", "user_id": "int", "checklist_id": "int", "title": "string", "created_at": "string"}
@@ -28,9 +32,9 @@ func (checklist *Checklist) CanCreating(userId string) bool {
 		filter := make(map[string]any, 1)
 		additionalFilters := make([]map[string]any, 1)
 		additionalFilters[0] = filter
-		_, total := checklist.GetList(map[string]string{"filterBy": "user_id", "filterVal": userId}, additionalFilters)
+		data := checklist.GetList(map[string]string{"filterBy": "user_id", "filterVal": userId}, additionalFilters)
 		checklistsQuantity := user.Message["checklists_quantity"].(int64)
-		if checklistsQuantity > int64(total) {
+		if checklistsQuantity > int64(data.Total) {
 			resp = true
 		}
 	}
